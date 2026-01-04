@@ -17,6 +17,7 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
   
   const response = await fetch(url, {
     headers: DEFAULT_HEADERS,
+    cache: 'no-store',
   });
 
   if (!response.ok) {
@@ -29,18 +30,18 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
   const lineScores = parseResultSet<any>(data.resultSets[1]);
 
   return gameHeaders.map((header) => {
-    const homeScore = lineScores.find(ls => ls.teamId === header.homeId && ls.gameId === header.gameId);
-    const visitorScore = lineScores.find(ls => ls.teamId === header.visitorId && ls.gameId === header.gameId);
+    const homeTeam = lineScores.find(ls => ls.teamId === header.homeTeamId && ls.gameId === header.gameId);
+    const visitorTeam = lineScores.find(ls => ls.teamId === header.visitorTeamId && ls.gameId === header.gameId);
 
     return {
       gameId: header.gameId,
       gameDate: header.gameDateEst,
-      homeTeamId: header.homeId,
-      visitorTeamId: header.visitorId,
-      homeTeamName: `${header.homeTeamCity} ${header.homeTeamName}`,
-      visitorTeamName: `${header.visitorTeamCity} ${header.visitorTeamName}`,
-      homeScore: homeScore?.pts ?? 0,
-      visitorScore: visitorScore?.pts ?? 0,
+      homeTeamId: header.homeTeamId,
+      visitorTeamId: header.visitorTeamId,
+      homeTeamName: homeTeam ? `${homeTeam.teamCityName} ${homeTeam.teamName}` : 'Unknown',
+      visitorTeamName: visitorTeam ? `${visitorTeam.teamCityName} ${visitorTeam.teamName}` : 'Unknown',
+      homeScore: homeTeam?.pts ?? 0,
+      visitorScore: visitorTeam?.pts ?? 0,
       gameStatusText: header.gameStatusText,
     };
   });
