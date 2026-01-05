@@ -6,24 +6,41 @@ export const NBA_STATS_BASE_URL = 'https://stats.nba.com/stats';
 export const NBA_CDN_BASE_URL = 'https://cdn.nba.com/static/json/liveData';
 
 export const DEFAULT_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0',
   'Accept': 'application/json, text/plain, */*',
-  'Accept-Language': 'en-US,en;q=0.9',
+  'Accept-Language': 'en-US,en;q=0.5',
   'x-nba-stats-origin': 'stats',
   'x-nba-stats-token': 'true',
-  'Referer': 'https://www.nba.com/',
-  'Origin': 'https://www.nba.com',
-  'sec-ch-ua': '"Google Chrome";v="123", "Not:A-Brand";v="8", "Chromium";v="123"',
-  'sec-ch-ua-mobile': '?0',
-  'sec-ch-ua-platform': '"macOS"',
-  'sec-fetch-site': 'same-site',
-  'sec-fetch-mode': 'cors',
-  'sec-fetch-dest': 'empty',
+  'Referer': 'https://stats.nba.com/',
+  'Origin': 'https://stats.nba.com',
+  'Connection': 'keep-alive',
 };
 
 const CDN_HEADERS = {
   ...DEFAULT_HEADERS,
+  'Referer': 'https://www.nba.com/',
+  'Origin': 'https://www.nba.com',
 };
+
+async function fetchWithRetry(url: string, options: RequestInit, retries = 3, delay = 1000): Promise<Response> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const response = await fetch(url, options);
+      if (response.ok) return response;
+      if (response.status === 403 || response.status === 429) {
+        console.warn(`Fetch failed with ${response.status}. Retrying (${i + 1}/${retries})...`);
+        await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+        continue;
+      }
+      return response;
+    } catch (error) {
+      if (i === retries - 1) throw error;
+      console.warn(`Fetch error: ${error}. Retrying (${i + 1}/${retries})...`);
+      await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+    }
+  }
+  throw new Error(`Failed to fetch after ${retries} retries`);
+}
 
 export async function getScoreboard(date: string): Promise<GameSummary[]> {
   if (process.env.USE_MOCK_DATA === 'true') {
@@ -44,7 +61,7 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
 
   const url = `${NBA_STATS_BASE_URL}/scoreboardv2?DayOffset=0&LeagueID=00&gameDate=${encodeURIComponent(date)}`;
   
-  const response = await fetch(url, {
+  const response = await fetchWithRetry(url, {
     headers: DEFAULT_HEADERS,
     cache: 'no-store',
   });
@@ -83,7 +100,7 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
 export async function getPlayByPlay(gameId: string): Promise<PlayByPlayEvent[]> {
   const url = `${NBA_STATS_BASE_URL}/playbyplayv2?EndPeriod=10&GameID=${gameId}&StartPeriod=1`;
   
-  const response = await fetch(url, {
+  const response = await fetchWithRetry(url, {
     headers: DEFAULT_HEADERS,
     cache: 'no-store',
   });
@@ -162,8 +179,8 @@ export async function getPlayByPlayV3(gameId: string): Promise<PlayByPlayV3Actio
   }
 
   const url = `${NBA_CDN_BASE_URL}/playbyplay/playbyplay_${gameId}.json`;
-  
-  const response = await fetch(url, {
+
+  const response = await fetchWithRetry(url, {
     headers: CDN_HEADERS,
     cache: 'no-store',
   });
@@ -201,7 +218,7 @@ export async function getBoxScoreV3(gameId: string): Promise<any> {
 
   const url = `${NBA_CDN_BASE_URL}/boxscore/boxscore_${gameId}.json`;
   
-  const response = await fetch(url, {
+  const response = await fetchWithRetry(url, {
     headers: CDN_HEADERS,
     cache: 'no-store',
   });
