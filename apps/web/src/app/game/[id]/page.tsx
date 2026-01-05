@@ -1,6 +1,6 @@
 import { getPlayByPlayV3, PlayByPlayV3Action } from '@nba-stats-rewind/nba-api-client';
 import Link from 'next/link';
-import { formatClock } from '@/utils/format';
+import { RewindViewer } from '@/components/RewindViewer';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -45,52 +45,7 @@ export default async function GameRewindPage(props: {
           </div>
         )}
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-            <h2 className="text-xl font-bold text-slate-800">Raw Play-by-Play</h2>
-            <span className="text-xs font-black px-3 py-1 bg-slate-900 text-white rounded-full uppercase">
-              {actions.length} Events
-            </span>
-          </div>
-          
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Period</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Time</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Score (H-A)</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Event Description</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {actions.length > 0 ? (
-                  actions.map((action) => (
-                    <tr key={action.actionNumber} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 text-sm font-medium text-slate-600">{action.period}</td>
-                      <td className="px-6 py-4 text-sm font-medium text-slate-600">{formatClock(action.clock)}</td>
-                      <td className="px-6 py-4 text-sm font-bold text-slate-900">
-                        {action.scoreHome} - {action.scoreAway}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-slate-700">
-                        <div className="font-medium text-slate-800">{action.description}</div>
-                        {action.playerName && (
-                          <div className="text-xs text-slate-500 mt-1">{action.playerName} ({action.teamTriplet})</div>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={4} className="px-6 py-24 text-center text-slate-500">
-                      No play-by-play data available for this game.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <RewindViewer actions={actions} />
       </div>
     </main>
   );
