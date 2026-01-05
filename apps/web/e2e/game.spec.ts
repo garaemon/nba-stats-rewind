@@ -15,11 +15,11 @@ test.describe('Game Rewind Page', () => {
     // Check if we are on the game page
     await expect(page).toHaveURL(/\/game\/.*/, { timeout: 10000 });
     
-    // Check for page title
-    await expect(page.locator('h1')).toContainText('Game Rewind');
+    // Check for page title (now contains team names)
+    await expect(page.locator('h1')).toContainText(/vs|Game Rewind/);
     
-    // Check for the events table
-    await expect(page.locator('table')).toBeVisible();
+    // Check for the events table (there are now multiple tables in box score view)
+    await expect(page.locator('table').first()).toBeVisible();
   });
 
   test('should navigate back to scoreboard', async ({ page }) => {
@@ -37,11 +37,11 @@ test.describe('Game Rewind Page', () => {
     // Using a sample game ID
     await page.goto('/game/0022300001', { waitUntil: 'networkidle' });
 
-    // Initially should show message to press play or no events
-    await expect(page.locator('table')).toBeVisible();
+    // Initially should show box score tables
+    await expect(page.locator('table').first()).toBeVisible();
 
     // Check playback controls
-    const playButton = page.getByRole('button', { name: 'Play' });
+    const playButton = page.getByRole('button', { name: 'Play', exact: true });
     await playButton.waitFor({ state: 'visible' });
 
     const speedSelect = page.getByRole('combobox');

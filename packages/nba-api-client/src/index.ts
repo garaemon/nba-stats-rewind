@@ -84,3 +84,18 @@ export async function getPlayByPlayV3(gameId: string): Promise<PlayByPlayV3Actio
   const data: PlayByPlayV3Response = await response.json();
   return data.game.actions;
 }
+
+export async function getBoxScoreV3(gameId: string): Promise<any> {
+  const url = `${NBA_CDN_BASE_URL}/boxscore/boxscore_${gameId}.json`;
+  
+  const response = await fetch(url, {
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch boxscore v3: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.game;
+}

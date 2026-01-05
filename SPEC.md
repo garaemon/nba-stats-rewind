@@ -104,7 +104,11 @@ nba-stats-rewind/
 - Calculate and display real-time player/team statistics by aggregating play-by-play data or using time-synced box score snapshots.
 - Implement the NBA.com-style Box Score table.
 
-### Phase 5: Visualization & Polishing
-- Add a Momentum Graph (score margin chart).
-- Implement playback speed control and a functional seek bar.
-- Refine UI/UX with Tailwind CSS and ensure mobile responsiveness.
+### Phase 5: Live Data Support
+- Implement periodic fetching of play-by-play data if the game is currently in progress.
+- Update the UI to reflect new events as they happen, maintaining the "rewind" capability for already played portions.
+
+### Phase 6: Visualization & Polishing [COMPLETED]
+- [x] Add a Momentum Graph (score margin chart).
+- [x] Implement playback speed control and a functional seek bar.
+- [x] Refine UI/UX with Tailwind CSS and ensure mobile responsiveness.

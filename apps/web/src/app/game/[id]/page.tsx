@@ -1,4 +1,4 @@
-import { getPlayByPlayV3, PlayByPlayV3Action } from '@nba-stats-rewind/nba-api-client';
+import { getPlayByPlayV3, getBoxScoreV3, PlayByPlayV3Action } from '@nba-stats-rewind/nba-api-client';
 import Link from 'next/link';
 import { RewindViewer } from '@/components/RewindViewer';
 
@@ -12,13 +12,19 @@ export default async function GameRewindPage(props: {
   const gameId = params.id;
   
   let actions: PlayByPlayV3Action[] = [];
+  let gameDetails: any = null;
   let errorMsg = '';
 
   try {
-    actions = await getPlayByPlayV3(gameId);
+    const [actionsData, boxscoreData] = await Promise.all([
+      getPlayByPlayV3(gameId),
+      getBoxScoreV3(gameId),
+    ]);
+    actions = actionsData;
+    gameDetails = boxscoreData;
   } catch (e) {
     console.error(e);
-    errorMsg = 'Failed to load play-by-play data. The API might be rate-limiting or down.';
+    errorMsg = 'Failed to load game data. The API might be rate-limiting or down.';
   }
 
   return (
@@ -31,7 +37,7 @@ export default async function GameRewindPage(props: {
               Back to Scoreboard
             </Link>
             <h1 className="text-3xl font-black text-slate-900">
-              Game Rewind
+              {gameDetails ? `${gameDetails.awayTeam.teamName} vs ${gameDetails.homeTeam.teamName}` : 'Game Rewind'}
               <span className="ml-3 text-sm font-medium text-slate-500 bg-slate-200 px-2 py-1 rounded">
                 ID: {gameId}
               </span>
@@ -45,7 +51,12 @@ export default async function GameRewindPage(props: {
           </div>
         )}
 
-        <RewindViewer actions={actions} />
+        <RewindViewer 
+          gameId={gameId} 
+          actions={actions} 
+          initialData={gameDetails} 
+          isLiveInitial={gameDetails?.gameStatus === 2}
+        />
       </div>
     </main>
   );
