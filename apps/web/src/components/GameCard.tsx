@@ -2,14 +2,15 @@
 
 import { useState } from 'react';
 import { GameSummary } from '@nba-stats-rewind/nba-api-client';
+import Link from 'next/link';
 
 export function GameCard({ game }: { game: GameSummary }) {
   const [showScore, setShowScore] = useState(false);
 
   return (
-    <div 
-      className="group bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden border border-slate-200 cursor-pointer"
-      onClick={() => setShowScore(!showScore)}
+    <Link 
+      href={`/game/${game.gameId}`}
+      className="group bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden border border-slate-200 cursor-pointer block"
       data-testid="game-card"
     >
       <div className="bg-slate-50 px-4 py-2 border-b border-slate-100 flex justify-between items-center">
@@ -51,6 +52,7 @@ export function GameCard({ game }: { game: GameSummary }) {
         <button 
           className="text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors"
           onClick={(e) => {
+            e.preventDefault();
             e.stopPropagation();
             setShowScore(!showScore);
           }}
@@ -61,6 +63,6 @@ export function GameCard({ game }: { game: GameSummary }) {
           Rewind Game →
         </span>
       </div>
-    </div>
+    </Link>
   );
 }

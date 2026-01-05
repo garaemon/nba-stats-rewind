@@ -1,4 +1,4 @@
-import { NBAApiResponse, GameSummary, parseResultSet } from './types';
+import { NBAApiResponse, GameSummary, parseResultSet, PlayByPlayEvent } from './types';
 
 export * from './types';
 
@@ -45,4 +45,20 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
       gameStatusText: header.gameStatusText,
     };
   });
+}
+
+export async function getPlayByPlay(gameId: string): Promise<PlayByPlayEvent[]> {
+  const url = `${NBA_STATS_BASE_URL}/playbyplayv2?EndPeriod=10&GameID=${gameId}&StartPeriod=1`;
+  
+  const response = await fetch(url, {
+    headers: DEFAULT_HEADERS,
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch play-by-play: ${response.statusText}`);
+  }
+
+  const data: NBAApiResponse = await response.json();
+  return parseResultSet<PlayByPlayEvent>(data.resultSets[0]);
 }

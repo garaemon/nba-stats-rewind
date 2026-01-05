@@ -33,8 +33,8 @@ test.describe('Home Page', () => {
     const score = gameCard.getByTestId('visitor-score');
     await expect(score).toHaveClass(/blur-md/);
 
-    // Click to show score
-    await gameCard.click({ force: true });
+    // Click to show score (via button)
+    await gameCard.getByRole('button', { name: 'Show Score' }).click({ force: true });
     await expect(score).not.toHaveClass(/blur-md/);
     await expect(gameCard).toContainText('Visible');
 
