@@ -20,7 +20,7 @@ test.describe('Game Rewind Page', () => {
     
     // Check for the events table
     await expect(page.locator('table')).toBeVisible();
-    await expect(page.locator('th')).toContainText(['Period', 'Time', 'Score', 'Event Description']);
+    await expect(page.locator('th')).toContainText(['Period', 'Time', 'Score (H-A)', 'Event Description']);
   });
 
   test('should navigate back to scoreboard', async ({ page }) => {

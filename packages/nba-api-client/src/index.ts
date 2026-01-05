@@ -1,8 +1,9 @@
-import { NBAApiResponse, GameSummary, parseResultSet, PlayByPlayEvent } from './types';
+import { NBAApiResponse, GameSummary, parseResultSet, PlayByPlayEvent, PlayByPlayV3Response, PlayByPlayV3Action } from './types';
 
 export * from './types';
 
 export const NBA_STATS_BASE_URL = 'https://stats.nba.com/stats';
+export const NBA_CDN_BASE_URL = 'https://cdn.nba.com/static/json/liveData';
 
 export const DEFAULT_HEADERS = {
   'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -47,6 +48,9 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
   });
 }
 
+/**
+ * @deprecated Use getPlayByPlayV3 instead
+ */
 export async function getPlayByPlay(gameId: string): Promise<PlayByPlayEvent[]> {
   const url = `${NBA_STATS_BASE_URL}/playbyplayv2?EndPeriod=10&GameID=${gameId}&StartPeriod=1`;
   
@@ -60,5 +64,23 @@ export async function getPlayByPlay(gameId: string): Promise<PlayByPlayEvent[]> 
   }
 
   const data: NBAApiResponse = await response.json();
+  if (!data.resultSets || data.resultSets.length === 0) {
+    return [];
+  }
   return parseResultSet<PlayByPlayEvent>(data.resultSets[0]);
+}
+
+export async function getPlayByPlayV3(gameId: string): Promise<PlayByPlayV3Action[]> {
+  const url = `${NBA_CDN_BASE_URL}/playbyplay/playbyplay_${gameId}.json`;
+  
+  const response = await fetch(url, {
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch play-by-play v3: ${response.statusText}`);
+  }
+
+  const data: PlayByPlayV3Response = await response.json();
+  return data.game.actions;
 }

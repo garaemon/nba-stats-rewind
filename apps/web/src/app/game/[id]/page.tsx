@@ -1,4 +1,4 @@
-import { getPlayByPlay, PlayByPlayEvent } from '@nba-stats-rewind/nba-api-client';
+import { getPlayByPlayV3, PlayByPlayV3Action } from '@nba-stats-rewind/nba-api-client';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -10,15 +10,20 @@ export default async function GameRewindPage(props: {
   const params = await props.params;
   const gameId = params.id;
   
-  let events: PlayByPlayEvent[] = [];
+  let actions: PlayByPlayV3Action[] = [];
   let errorMsg = '';
 
   try {
-    events = await getPlayByPlay(gameId);
+    actions = await getPlayByPlayV3(gameId);
   } catch (e) {
     console.error(e);
     errorMsg = 'Failed to load play-by-play data. The API might be rate-limiting or down.';
   }
+
+  // Helper to format ISO duration like PT12M00.00S
+  const formatClock = (clock: string) => {
+    return clock.replace('PT', '').replace('M', ':').replace('S', '');
+  };
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
@@ -48,7 +53,7 @@ export default async function GameRewindPage(props: {
           <div className="p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
             <h2 className="text-xl font-bold text-slate-800">Raw Play-by-Play</h2>
             <span className="text-xs font-black px-3 py-1 bg-slate-900 text-white rounded-full uppercase">
-              {events.length} Events
+              {actions.length} Events
             </span>
           </div>
           
@@ -58,29 +63,23 @@ export default async function GameRewindPage(props: {
                 <tr className="bg-slate-50 border-b border-slate-200">
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Period</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Time</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Score</th>
+                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Score (H-A)</th>
                   <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Event Description</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {events.length > 0 ? (
-                  events.map((event) => (
-                    <tr key={event.eventnum} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 text-sm font-medium text-slate-600">{event.period}</td>
-                      <td className="px-6 py-4 text-sm font-medium text-slate-600">{event.pctimestring}</td>
-                      <td className="px-6 py-4 text-sm font-bold text-slate-900">{event.score || '-'}</td>
+                {actions.length > 0 ? (
+                  actions.map((action) => (
+                    <tr key={action.actionNumber} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-6 py-4 text-sm font-medium text-slate-600">{action.period}</td>
+                      <td className="px-6 py-4 text-sm font-medium text-slate-600">{formatClock(action.clock)}</td>
+                      <td className="px-6 py-4 text-sm font-bold text-slate-900">
+                        {action.scoreHome} - {action.scoreAway}
+                      </td>
                       <td className="px-6 py-4 text-sm text-slate-700">
-                        {event.homedescription && (
-                          <div className="font-medium text-blue-700 mb-1">{event.homedescription}</div>
-                        )}
-                        {event.neutraldescription && (
-                          <div className="italic text-slate-500 mb-1">{event.neutraldescription}</div>
-                        )}
-                        {event.visitordescription && (
-                          <div className="font-medium text-red-700">{event.visitordescription}</div>
-                        )}
-                        {!event.homedescription && !event.neutraldescription && !event.visitordescription && (
-                          <span className="text-slate-400 italic font-light">No description</span>
+                        <div className="font-medium text-slate-800">{action.description}</div>
+                        {action.playerName && (
+                          <div className="text-xs text-slate-500 mt-1">{action.playerName} ({action.teamTriplet})</div>
                         )}
                       </td>
                     </tr>

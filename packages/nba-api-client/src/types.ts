@@ -59,6 +59,37 @@ export interface PlayByPlayEvent {
   videoAvailableFlag: number;
 }
 
+export interface PlayByPlayV3Response {
+  meta: any;
+  game: {
+    gameId: string;
+    actions: PlayByPlayV3Action[];
+  };
+}
+
+export interface PlayByPlayV3Action {
+  actionNumber: number;
+  clock: string;
+  timeActual: string;
+  period: number;
+  periodType: string;
+  actionType: string;
+  subType: string;
+  qualifiers: string[];
+  personId: number;
+  playerName?: string;
+  playerNameI?: string;
+  teamId: number;
+  teamTriplet: string;
+  description: string;
+  shotResult?: string;
+  scoreHome: string;
+  scoreAway: string;
+  displayValue?: string;
+  pointsTotal: number;
+  location: string;
+}
+
 /**
  * ResultSet形式のデータをオブジェクトの配列に変換するユーティリティ
  */

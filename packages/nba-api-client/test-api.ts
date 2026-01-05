@@ -1,17 +1,28 @@
-import { getScoreboard } from './src/index';
+import { getScoreboard, getPlayByPlayV3 } from './src/index';
 
 async function test() {
   try {
-    const games = await getScoreboard('01/01/2024');
-    console.log('Scoreboard data received!');
+    const date = '01/01/2024';
+    console.log(`Testing Scoreboard for ${date}...`);
+    const games = await getScoreboard(date);
+    console.log(`Scoreboard data received! Found ${games.length} games.`);
+    
     if (games.length > 0) {
-      console.log('First game sample:');
-      console.log('Home:', games[0].homeTeamName, 'Score:', games[0].homeScore);
-      console.log('Visitor:', games[0].visitorTeamName, 'Score:', games[0].visitorScore);
-      console.log('Status:', games[0].gameStatusText);
+      const firstGame = games[0];
+      console.log(`Testing Play-by-Play V3 for Game ID: ${firstGame.gameId} (${firstGame.visitorTeamName} @ ${firstGame.homeTeamName})...`);
+      
+      const actions = await getPlayByPlayV3(firstGame.gameId);
+      console.log(`Play-by-Play V3 data received! Found ${actions.length} actions.`);
+      
+      if (actions.length > 0) {
+        console.log('First action sample:');
+        console.log(JSON.stringify(actions[0], null, 2));
+      } else {
+        console.log('No actions found for this game.');
+      }
     }
   } catch (error) {
-    console.error('Error fetching scoreboard:', error);
+    console.error('Error during API test:', error);
   }
 }
 
