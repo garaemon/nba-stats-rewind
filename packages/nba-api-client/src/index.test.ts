@@ -54,10 +54,12 @@ describe('nba-api-client', () => {
     it('should throw error when fetch fails', async () => {
       (vi.mocked(fetch) as any).mockResolvedValue({
         ok: false,
+        status: 404,
         statusText: 'Not Found',
+        text: async () => 'Error content',
       });
 
-      await expect(getScoreboard('01/01/2024')).rejects.toThrow('Failed to fetch scoreboard: Not Found');
+      await expect(getScoreboard('01/01/2024')).rejects.toThrow('Failed to fetch scoreboard: 404 Not Found - Error content');
     });
   });
 
@@ -90,10 +92,12 @@ describe('nba-api-client', () => {
     it('should throw error when fetch fails', async () => {
       (vi.mocked(fetch) as any).mockResolvedValue({
         ok: false,
+        status: 500,
         statusText: 'Internal Server Error',
+        text: async () => 'Internal Error',
       });
 
-      await expect(getPlayByPlayV3('001')).rejects.toThrow('Failed to fetch play-by-play v3: Internal Server Error');
+      await expect(getPlayByPlayV3('001')).rejects.toThrow('Failed to fetch play-by-play v3: 500 Internal Server Error - Internal Error');
     });
   });
 });

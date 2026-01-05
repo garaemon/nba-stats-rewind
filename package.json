@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npm test -ws",
     "dev": "npm run dev -w apps/web",
     "build": "npm run build -w apps/web"
   },

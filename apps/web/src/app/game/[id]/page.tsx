@@ -23,8 +23,8 @@ export default async function GameRewindPage(props: {
     actions = actionsData;
     gameDetails = boxscoreData;
   } catch (e) {
-    console.error(e);
-    errorMsg = 'Failed to load game data. The API might be rate-limiting or down.';
+    console.error('Game data fetch error:', e);
+    errorMsg = `Failed to load game data: ${e instanceof Error ? e.message : 'Unknown error'}. The API might be rate-limiting or down.`;
   }
 
   return (
