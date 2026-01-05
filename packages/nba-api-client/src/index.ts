@@ -6,23 +6,17 @@ export const NBA_STATS_BASE_URL = 'https://stats.nba.com/stats';
 export const NBA_CDN_BASE_URL = 'https://cdn.nba.com/static/json/liveData';
 
 export const DEFAULT_HEADERS = {
-  'Host': 'stats.nba.com',
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0',
+  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
   'Accept': 'application/json, text/plain, */*',
-  'Accept-Language': 'en-US,en;q=0.5',
-  'Accept-Encoding': 'gzip, deflate, br',
+  'Accept-Language': 'en-US,en;q=0.9',
   'x-nba-stats-origin': 'stats',
   'x-nba-stats-token': 'true',
-  'Connection': 'keep-alive',
   'Referer': 'https://www.nba.com/',
   'Origin': 'https://www.nba.com',
-  'Pragma': 'no-cache',
-  'Cache-Control': 'no-cache',
 };
 
 const CDN_HEADERS = {
   ...DEFAULT_HEADERS,
-  'Host': 'cdn.nba.com',
 };
 
 export async function getScoreboard(date: string): Promise<GameSummary[]> {
@@ -50,7 +44,8 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch scoreboard: ${response.statusText}`);
+    const errorText = await response.text().catch(() => 'No error body');
+    throw new Error(`Failed to fetch scoreboard: ${response.status} ${response.statusText} - ${errorText.substring(0, 100)}`);
   }
 
   const data: NBAApiResponse = await response.json();
@@ -168,7 +163,8 @@ export async function getPlayByPlayV3(gameId: string): Promise<PlayByPlayV3Actio
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch play-by-play v3: ${response.statusText}`);
+    const errorText = await response.text().catch(() => 'No error body');
+    throw new Error(`Failed to fetch play-by-play v3: ${response.status} ${response.statusText} - ${errorText.substring(0, 100)}`);
   }
 
   const data: PlayByPlayV3Response = await response.json();
@@ -205,7 +201,8 @@ export async function getBoxScoreV3(gameId: string): Promise<any> {
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch boxscore v3: ${response.statusText}`);
+    const errorText = await response.text().catch(() => 'No error body');
+    throw new Error(`Failed to fetch boxscore v3: ${response.status} ${response.statusText} - ${errorText.substring(0, 100)}`);
   }
 
   const data = await response.json();
