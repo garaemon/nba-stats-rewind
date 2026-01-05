@@ -1,5 +1,6 @@
 import { getPlayByPlayV3, PlayByPlayV3Action } from '@nba-stats-rewind/nba-api-client';
 import Link from 'next/link';
+import { formatClock } from '@/utils/format';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -19,11 +20,6 @@ export default async function GameRewindPage(props: {
     console.error(e);
     errorMsg = 'Failed to load play-by-play data. The API might be rate-limiting or down.';
   }
-
-  // Helper to format ISO duration like PT12M00.00S
-  const formatClock = (clock: string) => {
-    return clock.replace('PT', '').replace('M', ':').replace('S', '');
-  };
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
