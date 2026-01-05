@@ -18,6 +18,7 @@ export const DEFAULT_HEADERS = {
 
 const CDN_HEADERS = {
   ...DEFAULT_HEADERS,
+  'Host': 'cdn.nba.com',
   'Referer': 'https://www.nba.com/',
   'Origin': 'https://www.nba.com',
 };
@@ -89,7 +90,10 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
   const url = `${NBA_STATS_BASE_URL}/scoreboardv2?DayOffset=0&LeagueID=00&gameDate=${encodeURIComponent(date)}`;
   
   const response = await fetchWithRetry(url, {
-    headers: DEFAULT_HEADERS,
+    headers: {
+      ...DEFAULT_HEADERS,
+      'Host': 'stats.nba.com',
+    },
     cache: 'no-store',
   });
 
@@ -128,7 +132,10 @@ export async function getPlayByPlay(gameId: string): Promise<PlayByPlayEvent[]> 
   const url = `${NBA_STATS_BASE_URL}/playbyplayv2?EndPeriod=10&GameID=${gameId}&StartPeriod=1`;
   
   const response = await fetchWithRetry(url, {
-    headers: DEFAULT_HEADERS,
+    headers: {
+      ...DEFAULT_HEADERS,
+      'Host': 'stats.nba.com',
+    },
     cache: 'no-store',
   });
 
