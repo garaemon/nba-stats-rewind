@@ -13,6 +13,12 @@ export const DEFAULT_HEADERS = {
   'x-nba-stats-token': 'true',
   'Referer': 'https://www.nba.com/',
   'Origin': 'https://www.nba.com',
+  'sec-ch-ua': '"Google Chrome";v="123", "Not:A-Brand";v="8", "Chromium";v="123"',
+  'sec-ch-ua-mobile': '?0',
+  'sec-ch-ua-platform': '"macOS"',
+  'sec-fetch-site': 'same-site',
+  'sec-fetch-mode': 'cors',
+  'sec-fetch-dest': 'empty',
 };
 
 const CDN_HEADERS = {
