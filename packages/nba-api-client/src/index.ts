@@ -6,13 +6,13 @@ export const NBA_STATS_BASE_URL = 'https://stats.nba.com/stats';
 export const NBA_CDN_BASE_URL = 'https://cdn.nba.com/static/json/liveData';
 
 export const DEFAULT_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0',
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
   'Accept': 'application/json, text/plain, */*',
-  'Accept-Language': 'en-US,en;q=0.5',
+  'Accept-Language': 'en-US,en;q=0.9',
   'x-nba-stats-origin': 'stats',
   'x-nba-stats-token': 'true',
-  'Referer': 'https://stats.nba.com/',
-  'Origin': 'https://stats.nba.com',
+  'Referer': 'https://www.nba.com/',
+  'Origin': 'https://www.nba.com',
   'Connection': 'keep-alive',
 };
 
@@ -57,6 +57,33 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
         gameStatusText: "Final",
       },
     ];
+  }
+
+  // Use CDN for today's games if possible (much more stable)
+  const today = new Date();
+  const todayStr = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}/${today.getFullYear()}`;
+  
+  if (date === todayStr) {
+    try {
+      const url = `${NBA_CDN_BASE_URL}/scoreboard/todaysScoreboard_00.json`;
+      const response = await fetch(url, { headers: CDN_HEADERS, cache: 'no-store' });
+      if (response.ok) {
+        const data = await response.json();
+        return data.scoreboard.games.map((game: any) => ({
+          gameId: game.gameId,
+          gameDate: game.gameEt,
+          homeTeamId: game.homeTeam.teamId,
+          visitorTeamId: game.awayTeam.teamId,
+          homeTeamName: `${game.homeTeam.teamCity} ${game.homeTeam.teamName}`,
+          visitorTeamName: `${game.awayTeam.teamCity} ${game.awayTeam.teamName}`,
+          homeScore: game.homeTeam.score,
+          visitorScore: game.awayTeam.score,
+          gameStatusText: game.gameStatusText,
+        }));
+      }
+    } catch (e) {
+      console.warn('Failed to fetch from CDN, falling back to stats API:', e);
+    }
   }
 
   const url = `${NBA_STATS_BASE_URL}/scoreboardv2?DayOffset=0&LeagueID=00&gameDate=${encodeURIComponent(date)}`;
