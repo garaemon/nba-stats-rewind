@@ -28,6 +28,9 @@ jobs:
       - name: Run unit tests
         run: npm test
 
+      - name: Build
+        run: npm run build
+
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
@@ -35,6 +38,3 @@ jobs:
         run: npm run test:e2e -w apps/web
         env:
           CI: true
-
-      - name: Build
-        run: npm run build
