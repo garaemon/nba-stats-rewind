@@ -45,7 +45,9 @@ export default async function Home(props: {
     games = await getScoreboard(apiDate);
   } catch (e) {
     console.error('Scoreboard fetch error:', e);
-    errorMsg = `Failed to load games: ${e instanceof Error ? e.message : 'Unknown error'}. The API might be rate-limiting or down.`;
+    const cause = (e as any)?.cause;
+    const causeMsg = cause ? ` (Cause: ${cause.message || cause})` : '';
+    errorMsg = `Failed to load games: ${e instanceof Error ? e.message : 'Unknown error'}${causeMsg}. The API might be rate-limiting or down.`;
   }
 
   return (
