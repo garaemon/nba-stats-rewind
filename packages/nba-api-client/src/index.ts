@@ -14,6 +14,22 @@ export const DEFAULT_HEADERS = {
 };
 
 export async function getScoreboard(date: string): Promise<GameSummary[]> {
+  if (process.env.USE_MOCK_DATA === 'true') {
+    return [
+      {
+        gameId: "0022300001",
+        gameDate: date,
+        homeTeamId: 1610612737,
+        visitorTeamId: 1610612754,
+        homeTeamName: "Atlanta Hawks",
+        visitorTeamName: "Indiana Pacers",
+        homeScore: 110,
+        visitorScore: 120,
+        gameStatusText: "Final",
+      },
+    ];
+  }
+
   const url = `${NBA_STATS_BASE_URL}/scoreboardv2?DayOffset=0&LeagueID=00&gameDate=${encodeURIComponent(date)}`;
   
   const response = await fetch(url, {
@@ -71,6 +87,48 @@ export async function getPlayByPlay(gameId: string): Promise<PlayByPlayEvent[]> 
 }
 
 export async function getPlayByPlayV3(gameId: string): Promise<PlayByPlayV3Action[]> {
+  if (process.env.USE_MOCK_DATA === 'true') {
+    return [
+      {
+        actionNumber: 2,
+        clock: "PT12M00.00S",
+        timeActual: "2024-01-01T00:00:00Z",
+        period: 1,
+        periodType: "REGULAR",
+        actionType: "period",
+        subType: "start",
+        qualifiers: [],
+        personId: 0,
+        teamId: 0,
+        teamTriplet: "",
+        description: "Period Start",
+        scoreHome: "0",
+        scoreAway: "0",
+        pointsTotal: 0,
+        location: "h",
+      },
+      {
+        actionNumber: 7,
+        clock: "PT11M30.00S",
+        timeActual: "2024-01-01T00:00:30Z",
+        period: 1,
+        periodType: "REGULAR",
+        actionType: "2pt",
+        subType: "jump-shot",
+        qualifiers: [],
+        personId: 1,
+        playerName: "Player A",
+        teamId: 1610612754,
+        teamTriplet: "IND",
+        description: "Jump Shot",
+        scoreHome: "0",
+        scoreAway: "2",
+        pointsTotal: 2,
+        location: "a",
+      },
+    ];
+  }
+
   const url = `${NBA_CDN_BASE_URL}/playbyplay/playbyplay_${gameId}.json`;
   
   const response = await fetch(url, {
@@ -86,6 +144,27 @@ export async function getPlayByPlayV3(gameId: string): Promise<PlayByPlayV3Actio
 }
 
 export async function getBoxScoreV3(gameId: string): Promise<any> {
+  if (process.env.USE_MOCK_DATA === 'true') {
+    return {
+      gameId: gameId,
+      gameStatus: 3,
+      homeTeam: {
+        teamId: 1610612737,
+        teamName: "Hawks",
+        teamCity: "Atlanta",
+        teamTricode: "ATL",
+        players: [],
+      },
+      awayTeam: {
+        teamId: 1610612754,
+        teamName: "Pacers",
+        teamCity: "Indiana",
+        teamTricode: "IND",
+        players: [],
+      },
+    };
+  }
+
   const url = `${NBA_CDN_BASE_URL}/boxscore/boxscore_${gameId}.json`;
   
   const response = await fetch(url, {

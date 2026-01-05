@@ -22,6 +22,9 @@ export default defineConfig({
     url: 'http://127.0.0.1:3001',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
+    env: {
+      USE_MOCK_DATA: 'true',
+    },
     stdout: 'pipe',
     stderr: 'pipe',
   },

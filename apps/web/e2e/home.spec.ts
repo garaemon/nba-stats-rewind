@@ -1,31 +1,5 @@
 import { test, expect } from '@playwright/test';
 
-test.beforeEach(async ({ page }) => {
-  // Mock Scoreboard API
-  await page.route(/.*stats\.nba\.com\/stats\/scoreboardv2.*/, async (route) => {
-    const json = {
-      resource: "ScoreboardV2",
-      parameters: { GameDate: "2024-01-01", LeagueID: "00", DayOffset: "0" },
-      resultSets: [
-        {
-          name: "GameHeader",
-          headers: ["GAME_ID", "GAME_DATE_EST", "HOME_TEAM_ID", "VISITOR_TEAM_ID", "GAME_STATUS_TEXT"],
-          rowSet: [["0022300001", "2024-01-01T00:00:00", 1610612737, 1610612754, "Final"]],
-        },
-        {
-          name: "LineScore",
-          headers: ["GAME_ID", "TEAM_ID", "TEAM_CITY_NAME", "TEAM_NAME", "PTS"],
-          rowSet: [
-            ["0022300001", 1610612737, "Atlanta", "Hawks", 110],
-            ["0022300001", 1610612754, "Indiana", "Pacers", 120],
-          ],
-        },
-      ],
-    };
-    await route.fulfill({ json });
-  });
-});
-
 test.describe('Home Page', () => {
   test('should display the correct date and handle navigation', async ({ page }) => {
     await page.goto('/?date=2024-01-01');
