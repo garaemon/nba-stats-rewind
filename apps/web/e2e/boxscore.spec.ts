@@ -1,5 +1,93 @@
 import { test, expect } from '@playwright/test';
 
+test.beforeEach(async ({ page }) => {
+  // Mock Scoreboard API
+  await page.route(/.*stats\.nba\.com\/stats\/scoreboardv2.*/, async (route) => {
+    const json = {
+      resource: "ScoreboardV2",
+      parameters: { GameDate: "2024-01-01", LeagueID: "00", DayOffset: "0" },
+      resultSets: [
+        {
+          name: "GameHeader",
+          headers: ["GAME_ID", "GAME_DATE_EST", "HOME_TEAM_ID", "VISITOR_TEAM_ID", "GAME_STATUS_TEXT"],
+          rowSet: [["0022300001", "2024-01-01T00:00:00", 1610612737, 1610612754, "Final"]],
+        },
+        {
+          name: "LineScore",
+          headers: ["GAME_ID", "TEAM_ID", "TEAM_CITY_NAME", "TEAM_NAME", "PTS"],
+          rowSet: [
+            ["0022300001", 1610612737, "Atlanta", "Hawks", 110],
+            ["0022300001", 1610612754, "Indiana", "Pacers", 120],
+          ],
+        },
+      ],
+    };
+    await route.fulfill({ json });
+  });
+
+  // Mock Play-by-Play V3 API
+  await page.route(/.*cdn\.nba\.com\/static\/json\/liveData\/playbyplay\/playbyplay_.*\.json/, async (route) => {
+    const json = {
+      game: {
+        gameId: "0022300001",
+        actions: [
+          {
+            actionNumber: 2,
+            clock: "PT12M00.00S",
+            timeActual: "2024-01-01T00:00:00Z",
+            period: 1,
+            actionType: "period",
+            subType: "start",
+            description: "Period Start",
+            scoreHome: "0",
+            scoreAway: "0",
+          },
+          {
+            actionNumber: 7,
+            clock: "PT11M30.00S",
+            timeActual: "2024-01-01T00:00:30Z",
+            period: 1,
+            actionType: "2pt",
+            subType: "jump-shot",
+            description: "Jump Shot",
+            scoreHome: "0",
+            scoreAway: "2",
+            playerName: "Player A",
+            teamTriplet: "IND",
+            pointsTotal: 2,
+          },
+        ],
+      },
+    };
+    await route.fulfill({ json });
+  });
+
+  // Mock Boxscore V3 API
+  await page.route(/.*cdn\.nba\.com\/static\/json\/liveData\/boxscore\/boxscore_.*\.json/, async (route) => {
+    const json = {
+      game: {
+        gameId: "0022300001",
+        gameStatus: 3,
+        homeTeam: {
+          teamId: 1610612737,
+          teamName: "Hawks",
+          teamCity: "Atlanta",
+          teamTricode: "ATL",
+          players: [],
+        },
+        awayTeam: {
+          teamId: 1610612754,
+          teamName: "Pacers",
+          teamCity: "Indiana",
+          teamTricode: "IND",
+          players: [],
+        },
+      },
+    };
+    await route.fulfill({ json });
+  });
+});
+
 test.describe('Box Score Functionality', () => {
   test('should display box score and switch tabs', async ({ page }) => {
     // Navigate to a game page (using a sample ID)
