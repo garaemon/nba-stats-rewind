@@ -60,22 +60,34 @@ export function MomentumGraph({ actions, totalDuration, currentTime, onSeek }: M
       return { pathData: '', maxMargin: 10 };
     }
 
-    const margins = dataPoints.map(p => Math.abs(p.y));
-    const max = Math.max(...margins, 10); // Minimum 10 points margin for scale
-
-    const getX = (time: number) => (time / totalDuration) * dimensions.width;
-    const getY = (margin: number) => (dimensions.height / 2) - (margin / max) * (dimensions.height / 2);
-
-    let d = `M ${getX(dataPoints[0].x)} ${getY(dataPoints[0].y)}`;
+    // Filter points to only show up to currentTime to avoid spoilers
+    const visiblePoints = dataPoints.filter(p => p.x <= currentTime);
     
-    for (let i = 1; i < dataPoints.length; i++) {
-      // Use "stepping" line for score changes
-      d += ` L ${getX(dataPoints[i].x)} ${getY(dataPoints[i-1].y)}`;
-      d += ` L ${getX(dataPoints[i].x)} ${getY(dataPoints[i].y)}`;
+    // Add a virtual point at the current time to make the line continuous
+    const lastPoint = visiblePoints[visiblePoints.length - 1];
+    if (lastPoint && lastPoint.x < currentTime && currentTime <= totalDuration) {
+      visiblePoints.push({ x: currentTime, y: lastPoint.y });
     }
 
-    return { pathData: d, maxMargin: max };
-  }, [dataPoints, totalDuration, dimensions]);
+    // Use only visible points for maxMargin to avoid spoilers in the label/scale
+    const visibleMargins = visiblePoints.map(p => Math.abs(p.y));
+    const currentMax = Math.max(...visibleMargins, 10); 
+
+    const getX = (time: number) => (time / totalDuration) * dimensions.width;
+    const getY = (margin: number) => (dimensions.height / 2) - (margin / currentMax) * (dimensions.height / 2);
+
+    if (visiblePoints.length === 0) return { pathData: '', maxMargin: 10 };
+
+    let d = `M ${getX(visiblePoints[0].x)} ${getY(visiblePoints[0].y)}`;
+    
+    for (let i = 1; i < visiblePoints.length; i++) {
+      // Use "stepping" line for score changes
+      d += ` L ${getX(visiblePoints[i].x)} ${getY(visiblePoints[i-1].y)}`;
+      d += ` L ${getX(visiblePoints[i].x)} ${getY(visiblePoints[i].y)}`;
+    }
+
+    return { pathData: d, maxMargin: currentMax };
+  }, [dataPoints, totalDuration, dimensions, currentTime]);
 
   const handlePointerMove = (e: React.PointerEvent) => {
     if (e.buttons !== 1) return;
