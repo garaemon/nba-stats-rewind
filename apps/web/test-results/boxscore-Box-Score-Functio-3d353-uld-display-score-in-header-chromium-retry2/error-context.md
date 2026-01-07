@@ -1,0 +1,135 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e5]:
+        - link "Back to Scoreboard" [ref=e6] [cursor=pointer]:
+          - /url: /
+          - img [ref=e7]
+          - text: Back to Scoreboard
+        - 'heading "Game RewindID: 0022300001" [level=1] [ref=e9]':
+          - text: Game Rewind
+          - generic [ref=e10]: "ID: 0022300001"
+      - generic [ref=e11]:
+        - generic [ref=e12]:
+          - text: LIVE UPDATING
+          - generic [ref=e14]: "Last: 10:30:14 PM"
+        - generic [ref=e15]:
+          - generic [ref=e16]:
+            - generic [ref=e17]:
+              - generic [ref=e18]: Game Clock
+              - generic [ref=e19]: Pre-game
+            - generic [ref=e20]:
+              - generic [ref=e21]: Actual Time
+              - generic [ref=e22]: 04:16:40 PM PST
+            - generic [ref=e23]:
+              - generic [ref=e24]: Score
+              - generic [ref=e25]:
+                - generic [ref=e26]:
+                  - generic [ref=e27]: AWAY
+                  - generic [ref=e28]: "0"
+                - generic [ref=e29]: "-"
+                - generic [ref=e30]:
+                  - generic [ref=e31]: HOME
+                  - generic [ref=e32]: "0"
+          - generic [ref=e33]:
+            - generic [ref=e34]:
+              - generic [ref=e35]:
+                - generic [ref=e36]: Momentum Graph
+                - generic [ref=e37]: "Max Margin: ±10"
+              - img [ref=e39]
+            - generic [ref=e41]:
+              - button "Play" [ref=e42]:
+                - img [ref=e43]
+              - generic [ref=e45]:
+                - generic [ref=e46]:
+                  - generic [ref=e47]: 16m elapsed
+                  - generic [ref=e48]:
+                    - button "SYNC TO LIVE" [ref=e49]
+                    - generic [ref=e50]: 48m total
+                - slider [active] [ref=e51] [cursor=pointer]: "1000"
+              - generic [ref=e52]:
+                - generic [ref=e53]: Speed
+                - combobox [ref=e54] [cursor=pointer]:
+                  - option "1x" [selected]
+                  - option "2x"
+                  - option "4x"
+                  - option "10x"
+                  - option "20x"
+                  - option "50x"
+                  - option "100x"
+        - generic [ref=e55]:
+          - button "Box Score" [ref=e56]
+          - button "Play-by-Play" [ref=e57]
+          - button "Team Comparison" [ref=e58]
+        - generic [ref=e59]:
+          - generic [ref=e60]:
+            - 'heading "AWAY: AWAY" [level=2] [ref=e62]'
+            - table [ref=e64]:
+              - rowgroup [ref=e65]:
+                - row "Player PTS REB AST STL BLK TO FG% 3P% FT%" [ref=e66]:
+                  - columnheader "Player" [ref=e67]
+                  - columnheader "PTS" [ref=e68]
+                  - columnheader "REB" [ref=e69]
+                  - columnheader "AST" [ref=e70]
+                  - columnheader "STL" [ref=e71]
+                  - columnheader "BLK" [ref=e72]
+                  - columnheader "TO" [ref=e73]
+                  - columnheader "FG%" [ref=e74]
+                  - columnheader "3P%" [ref=e75]
+                  - columnheader "FT%" [ref=e76]
+              - rowgroup [ref=e77]:
+                - row "TOTALS 0 0 0 0 0 0 0.0% 0-0 0.0% 0-0 0.0% 0-0" [ref=e78]:
+                  - cell "TOTALS" [ref=e79]
+                  - cell "0" [ref=e80]
+                  - cell "0" [ref=e81]
+                  - cell "0" [ref=e82]
+                  - cell "0" [ref=e83]
+                  - cell "0" [ref=e84]
+                  - cell "0" [ref=e85]
+                  - cell "0.0% 0-0" [ref=e86]:
+                    - generic [ref=e87]: 0.0%
+                    - generic [ref=e88]: 0-0
+                  - cell "0.0% 0-0" [ref=e89]:
+                    - generic [ref=e90]: 0.0%
+                    - generic [ref=e91]: 0-0
+                  - cell "0.0% 0-0" [ref=e92]:
+                    - generic [ref=e93]: 0.0%
+                    - generic [ref=e94]: 0-0
+          - generic [ref=e95]:
+            - 'heading "HOME: HOME" [level=2] [ref=e97]'
+            - table [ref=e99]:
+              - rowgroup [ref=e100]:
+                - row "Player PTS REB AST STL BLK TO FG% 3P% FT%" [ref=e101]:
+                  - columnheader "Player" [ref=e102]
+                  - columnheader "PTS" [ref=e103]
+                  - columnheader "REB" [ref=e104]
+                  - columnheader "AST" [ref=e105]
+                  - columnheader "STL" [ref=e106]
+                  - columnheader "BLK" [ref=e107]
+                  - columnheader "TO" [ref=e108]
+                  - columnheader "FG%" [ref=e109]
+                  - columnheader "3P%" [ref=e110]
+                  - columnheader "FT%" [ref=e111]
+              - rowgroup [ref=e112]:
+                - row "TOTALS 0 0 0 0 0 0 0.0% 0-0 0.0% 0-0 0.0% 0-0" [ref=e113]:
+                  - cell "TOTALS" [ref=e114]
+                  - cell "0" [ref=e115]
+                  - cell "0" [ref=e116]
+                  - cell "0" [ref=e117]
+                  - cell "0" [ref=e118]
+                  - cell "0" [ref=e119]
+                  - cell "0" [ref=e120]
+                  - cell "0.0% 0-0" [ref=e121]:
+                    - generic [ref=e122]: 0.0%
+                    - generic [ref=e123]: 0-0
+                  - cell "0.0% 0-0" [ref=e124]:
+                    - generic [ref=e125]: 0.0%
+                    - generic [ref=e126]: 0-0
+                  - cell "0.0% 0-0" [ref=e127]:
+                    - generic [ref=e128]: 0.0%
+                    - generic [ref=e129]: 0-0
+  - alert [ref=e130]
+```

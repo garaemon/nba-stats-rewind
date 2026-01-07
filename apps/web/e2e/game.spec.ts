@@ -7,13 +7,13 @@ test.describe('Game Rewind Page', () => {
 
     // Wait for games to load and click the first game card
     const gameCard = page.getByTestId('game-card').first();
-    await gameCard.waitFor({ state: 'visible', timeout: 10000 });
+    await gameCard.waitFor({ state: 'visible', timeout: 30000 });
     
     // Click the card to navigate
     await gameCard.click({ force: true });
 
     // Check if we are on the game page
-    await expect(page).toHaveURL(/\/game\/.*/, { timeout: 10000 });
+    await expect(page).toHaveURL(/\/game\/.*/, { timeout: 30000 });
     
     // Check for page title (now contains team names)
     await expect(page.locator('h1')).toContainText(/vs|Game Rewind/);
@@ -30,7 +30,7 @@ test.describe('Game Rewind Page', () => {
     await page.getByRole('link', { name: 'Back to Scoreboard' }).click({ force: true });
 
     // Check if we are back on the home page
-    await expect(page).toHaveURL('/', { timeout: 10000 });
+    await expect(page).toHaveURL('/', { timeout: 30000 });
   });
 
   test('should control playback and filter events', async ({ page }) => {
@@ -69,6 +69,6 @@ test.describe('Game Rewind Page', () => {
       const actualTimeText = await page.getByTestId('current-actual-time').textContent();
       // It should be a valid time format like HH:MM:SS JST or similar
       expect(actualTimeText).toMatch(/\d{2}:\d{2}:\d{2}.+/);
-    }).toPass({ timeout: 10000 });
+    }).toPass({ timeout: 30000 });
   });
 });

@@ -48,7 +48,7 @@ test.describe('Box Score Functionality', () => {
       const scores = combinedText.match(/\d+/g);
       const hasPoints = scores?.some(s => parseInt(s) > 0);
       expect(hasPoints).toBe(true);
-    }).toPass({ timeout: 10000 });
+    }).toPass({ timeout: 30000 });
   });
 
   test('should display score in header', async ({ page }) => {
@@ -68,6 +68,6 @@ test.describe('Box Score Functionality', () => {
       const scores = scoreText?.match(/\d+/g);
       const hasPoints = scores?.some(s => parseInt(s) > 0);
       expect(hasPoints).toBe(true);
-    }).toPass({ timeout: 10000 });
+    }).toPass({ timeout: 30000 });
   });
 });

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { PlayByPlayV3Action, getPlayByPlayV3, getBoxScoreV3 } from '@nba-stats-rewind/nba-api-client';
 
 interface UseLiveGameProps {
@@ -28,7 +28,7 @@ export function useLiveGame({
     if (enabled) setIsLive(true);
   }, [enabled]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [actionsData, boxscoreData] = await Promise.all([
         getPlayByPlayV3(gameId),
@@ -49,14 +49,14 @@ export function useLiveGame({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [gameId]);
 
   // Initial fetch if no data provided
   useEffect(() => {
     if (!initialActions || initialActions.length === 0) {
       fetchData();
     }
-  }, [gameId]); // Only run on mount or gameId change
+  }, [initialActions, fetchData]); 
 
   useEffect(() => {
     if (isLive) {
@@ -72,7 +72,7 @@ export function useLiveGame({
         clearInterval(intervalRef.current);
       }
     };
-  }, [isLive, interval, gameId]);
+  }, [isLive, interval, fetchData]);
 
   return {
     actions,

@@ -39,6 +39,11 @@ async function fetchWithRetry(url: string, options: RequestInit, retries = 3, de
         await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
         continue;
       }
+      if (response.status >= 500) {
+        console.warn(`Fetch failed with ${response.status}. Retrying (${i + 1}/${retries})...`);
+        await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+        continue;
+      }
       return response;
     } catch (error) {
       if (options.signal?.aborted) throw error;
@@ -76,7 +81,7 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
   if (date === todayStr) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
       const url = `${NBA_CDN_BASE_URL}/scoreboard/todaysScoreboard_00.json`;
       const response = await fetch(url, { headers: CDN_HEADERS, cache: 'no-store', signal: controller.signal });
       clearTimeout(timeoutId);
@@ -101,7 +106,7 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
   }
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 4000);
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
     const url = `${NBA_STATS_BASE_URL}/scoreboardv2?DayOffset=0&LeagueID=00&gameDate=${encodeURIComponent(date)}`;
@@ -109,10 +114,11 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
     const response = await fetchWithRetry(url, {
       headers: {
         ...DEFAULT_HEADERS,
+        'Host': 'stats.nba.com',
       },
       cache: 'no-store',
       signal: controller.signal,
-    });
+    }, 3, 2000);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error body');
@@ -235,14 +241,14 @@ export async function getPlayByPlayV3(gameId: string): Promise<PlayByPlayV3Actio
 
   const url = `${NBA_CDN_BASE_URL}/playbyplay/playbyplay_${gameId}.json`;
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 3000);
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
 
   try {
     const response = await fetchWithRetry(url, {
       headers: CDN_HEADERS,
       cache: 'no-store',
       signal: controller.signal,
-    });
+    }, 3, 2000);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error body');
@@ -283,14 +289,14 @@ export async function getBoxScoreV3(gameId: string): Promise<any> {
 
   const url = `${NBA_CDN_BASE_URL}/boxscore/boxscore_${gameId}.json`;
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 3000);
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
   
   try {
     const response = await fetchWithRetry(url, {
       headers: CDN_HEADERS,
       cache: 'no-store',
       signal: controller.signal,
-    });
+    }, 3, 2000);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'No error body');
