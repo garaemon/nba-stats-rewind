@@ -2,8 +2,10 @@ import { NBAApiResponse, GameSummary, parseResultSet, PlayByPlayEvent, PlayByPla
 
 export * from './types';
 
-export const NBA_STATS_BASE_URL = 'https://stats.nba.com/stats';
-export const NBA_CDN_BASE_URL = 'https://cdn.nba.com/static/json/liveData';
+const isBrowser = typeof window !== 'undefined';
+
+export const NBA_STATS_BASE_URL = isBrowser ? '/nba-api' : 'https://stats.nba.com/stats';
+export const NBA_CDN_BASE_URL = isBrowser ? '/nba-cdn' : 'https://cdn.nba.com/static/json/liveData';
 
 export const DEFAULT_HEADERS = {
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
@@ -13,12 +15,13 @@ export const DEFAULT_HEADERS = {
   'x-nba-stats-token': 'true',
   'Referer': 'https://www.nba.com/',
   'Origin': 'https://www.nba.com',
-  'Connection': 'keep-alive',
+  // Connection header is forbidden in some browser environments
+  // 'Connection': 'keep-alive',
 };
 
 const CDN_HEADERS = {
   ...DEFAULT_HEADERS,
-  'Host': 'cdn.nba.com',
+  // Host header is forbidden in browser environments
   'Referer': 'https://www.nba.com/',
   'Origin': 'https://www.nba.com',
 };
@@ -106,7 +109,6 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
     const response = await fetchWithRetry(url, {
       headers: {
         ...DEFAULT_HEADERS,
-        'Host': 'stats.nba.com',
       },
       cache: 'no-store',
       signal: controller.signal,
@@ -154,7 +156,6 @@ export async function getPlayByPlay(gameId: string): Promise<PlayByPlayEvent[]> 
   const response = await fetchWithRetry(url, {
     headers: {
       ...DEFAULT_HEADERS,
-      'Host': 'stats.nba.com',
     },
     cache: 'no-store',
   });

@@ -1,11 +1,20 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useLiveGame } from './useLiveGame';
+import * as api from '@nba-stats-rewind/nba-api-client';
+
+vi.mock('@nba-stats-rewind/nba-api-client', async () => {
+  const actual = await vi.importActual('@nba-stats-rewind/nba-api-client');
+  return {
+    ...actual,
+    getPlayByPlayV3: vi.fn(),
+    getBoxScoreV3: vi.fn(),
+  };
+});
 
 describe('useLiveGame', () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    global.fetch = vi.fn();
   });
 
   afterEach(() => {
@@ -34,10 +43,8 @@ describe('useLiveGame', () => {
     const mockActions = [{ actionNumber: 1 }];
     const mockBoxScore = { gameId: '123', gameStatus: 2 };
 
-    (global.fetch as any).mockResolvedValue({
-      ok: true,
-      json: async () => ({ actions: mockActions, boxscore: mockBoxScore }),
-    });
+    vi.mocked(api.getPlayByPlayV3).mockResolvedValue(mockActions as any);
+    vi.mocked(api.getBoxScoreV3).mockResolvedValue(mockBoxScore as any);
 
     renderHook(() => useLiveGame({
       gameId: '123',
@@ -52,7 +59,8 @@ describe('useLiveGame', () => {
       vi.advanceTimersByTime(1000);
     });
 
-    expect(global.fetch).toHaveBeenCalledWith('/api/game/123');
+    expect(api.getPlayByPlayV3).toHaveBeenCalledWith('123');
+    expect(api.getBoxScoreV3).toHaveBeenCalledWith('123');
   });
 
   it('should stop polling when game status becomes Final (3)', async () => {
@@ -60,10 +68,8 @@ describe('useLiveGame', () => {
     const initialBoxScore = { gameId: '123', gameStatus: 2 };
     const mockBoxScore = { gameId: '123', gameStatus: 3 }; // Final
 
-    (global.fetch as any).mockResolvedValue({
-      ok: true,
-      json: async () => ({ actions: [], boxscore: mockBoxScore }),
-    });
+    vi.mocked(api.getPlayByPlayV3).mockResolvedValue([] as any);
+    vi.mocked(api.getBoxScoreV3).mockResolvedValue(mockBoxScore as any);
 
     const { result } = renderHook(() => useLiveGame({
       gameId: '123',

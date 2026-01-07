@@ -21,6 +21,7 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
     boxScore: gameDetails,
     isLive,
     lastUpdated,
+    isLoading,
   } = useLiveGame({
     gameId,
     initialActions,
@@ -30,7 +31,7 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
 
   // Process actions and calculate relative wall-clock time
   const { processedActions, startTime, totalDuration, homeTeamId, awayTeamId } = useMemo(() => {
-    if (actions.length === 0) return { processedActions: [], startTime: 0, totalDuration: 2880, homeTeamId: 0, awayTeamId: 0 };
+    if (actions.length === 0) return { processedActions: [], startTime: 0, totalDuration: 0, homeTeamId: 0, awayTeamId: 0 };
 
     const sorted = [...actions].sort((a, b) => a.actionNumber - b.actionNumber);
     const start = parseActualTime(sorted[0].timeActual);
@@ -62,7 +63,7 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
     return {
       processedActions: processed,
       startTime: start,
-      totalDuration: (end - start) / 1000,
+      totalDuration: Math.max(0, (end - start) / 1000),
       homeTeamId: hId,
       awayTeamId: aId,
     };
@@ -100,8 +101,25 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
 
   const currentActualTime = startTime + currentTime * 1000;
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-slate-200 shadow-sm">
+        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-slate-500 font-bold">Loading game data...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Team Names Display (Now that we have data) */}
+      {gameDetails && (
+        <div className="mb-2">
+          <h2 className="text-xl font-bold text-slate-700">
+            {gameDetails.awayTeam.teamCity} {gameDetails.awayTeam.teamName} @ {gameDetails.homeTeam.teamCity} {gameDetails.homeTeam.teamName}
+          </h2>
+        </div>
+      )}
       {/* Live Status Indicator */}
       {isLive && (
         <div className="flex items-center gap-2 px-3 py-1 bg-red-100 text-red-600 rounded-full w-fit text-xs font-black animate-pulse">
