@@ -39,15 +39,21 @@ export default async function Home(props: {
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
   let games: GameSummary[] = [];
-  let errorMsg = '';
+  let errorDetail: any = null;
 
   try {
     games = await getScoreboard(apiDate);
   } catch (e) {
     console.error('Scoreboard fetch error:', e);
     const cause = (e as any)?.cause;
-    const causeMsg = cause ? ` (Cause: ${cause.message || cause})` : '';
-    errorMsg = `Failed to load games: ${e instanceof Error ? e.message : 'Unknown error'}${causeMsg}. The API might be rate-limiting or down.`;
+    
+    errorDetail = {
+      message: e instanceof Error ? e.message : 'Unknown error',
+      name: e instanceof Error ? e.name : 'Error',
+      stack: e instanceof Error ? e.stack : undefined,
+      cause: cause ? (cause.message || JSON.stringify(cause)) : undefined,
+      fullError: JSON.stringify(e, Object.getOwnPropertyNames(e), 2)
+    };
   }
 
   return (
@@ -104,9 +110,18 @@ export default async function Home(props: {
           </div>
         </nav>
 
-        {errorMsg && (
+        {errorDetail && (
           <div className="mb-8 p-4 bg-red-50 border border-red-100 text-red-600 rounded-lg text-sm font-medium">
-            {errorMsg}
+            <p className="font-bold mb-2">Failed to load games: {errorDetail.message}</p>
+            {errorDetail.cause && <p className="mb-2">Cause: {errorDetail.cause}</p>}
+            <p className="mb-2">The API might be rate-limiting or down.</p>
+            
+            <details className="mt-4">
+              <summary className="cursor-pointer text-xs font-bold uppercase tracking-wider hover:underline">Show Technical Details</summary>
+              <pre className="mt-2 p-3 bg-red-100 rounded text-xs overflow-x-auto whitespace-pre-wrap font-mono">
+                {errorDetail.stack || errorDetail.fullError}
+              </pre>
+            </details>
           </div>
         )}
 
