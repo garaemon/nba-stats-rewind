@@ -43,12 +43,18 @@ export default async function Home(props: {
 
   try {
     games = await getScoreboard(apiDate);
-  } catch (e) {
+  } catch (e: any) {
     console.error('Scoreboard fetch error:', e);
-    const cause = (e as any)?.cause;
+    const cause = e?.cause;
     
+    let message = e instanceof Error ? e.message : 'Unknown error';
+    // Check for AbortError or timeout related messages
+    if (e?.name === 'AbortError' || message.includes('aborted') || message.includes('timeout')) {
+       message = 'Connection timed out. The NBA API server is not responding (likely due to rate limiting or IP blocking).';
+    }
+
     errorDetail = {
-      message: e instanceof Error ? e.message : 'Unknown error',
+      message: message,
       name: e instanceof Error ? e.name : 'Error',
       stack: e instanceof Error ? e.stack : undefined,
       cause: cause ? (cause.message || JSON.stringify(cause)) : undefined,
