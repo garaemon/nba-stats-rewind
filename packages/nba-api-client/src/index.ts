@@ -25,6 +25,9 @@ const CDN_HEADERS = {
 
 async function fetchWithRetry(url: string, options: RequestInit, retries = 3, delay = 1000): Promise<Response> {
   for (let i = 0; i < retries; i++) {
+    if (options.signal?.aborted) {
+      throw new Error('Request aborted by timeout');
+    }
     try {
       const response = await fetch(url, options);
       if (response.ok) return response;
@@ -35,6 +38,7 @@ async function fetchWithRetry(url: string, options: RequestInit, retries = 3, de
       }
       return response;
     } catch (error) {
+      if (options.signal?.aborted) throw error;
       if (i === retries - 1) throw error;
       console.warn(`Fetch error: ${error}. Retrying (${i + 1}/${retries})...`);
       await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
@@ -68,8 +72,12 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
   
   if (date === todayStr) {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
       const url = `${NBA_CDN_BASE_URL}/scoreboard/todaysScoreboard_00.json`;
-      const response = await fetch(url, { headers: CDN_HEADERS, cache: 'no-store' });
+      const response = await fetch(url, { headers: CDN_HEADERS, cache: 'no-store', signal: controller.signal });
+      clearTimeout(timeoutId);
+
       if (response.ok) {
         const data = await response.json();
         return data.scoreboard.games.map((game: any) => ({
@@ -89,6 +97,9 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
     }
   }
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 4000);
+
   try {
     const url = `${NBA_STATS_BASE_URL}/scoreboardv2?DayOffset=0&LeagueID=00&gameDate=${encodeURIComponent(date)}`;
     
@@ -98,6 +109,7 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
         'Host': 'stats.nba.com',
       },
       cache: 'no-store',
+      signal: controller.signal,
     });
 
     if (!response.ok) {
@@ -127,32 +139,10 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
       };
     });
   } catch (error) {
-    console.error('Scoreboard fetch failed, returning mock data:', error);
-    // Automatic fallback to mock data in production if fetch fails
-    return [
-      {
-        gameId: "0022300001",
-        gameDate: date,
-        homeTeamId: 1610612737,
-        visitorTeamId: 1610612754,
-        homeTeamName: "Atlanta Hawks",
-        visitorTeamName: "Indiana Pacers",
-        homeScore: 110,
-        visitorScore: 120,
-        gameStatusText: "Demo - Final",
-      },
-      {
-        gameId: "0022300002",
-        gameDate: date,
-        homeTeamId: 1610612747,
-        visitorTeamId: 1610612744,
-        homeTeamName: "LA Lakers",
-        visitorTeamName: "GS Warriors",
-        homeScore: 105,
-        visitorScore: 108,
-        gameStatusText: "Demo - Final",
-      }
-    ];
+    console.error('Scoreboard fetch failed:', error);
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 /**
@@ -243,11 +233,14 @@ export async function getPlayByPlayV3(gameId: string): Promise<PlayByPlayV3Actio
   }
 
   const url = `${NBA_CDN_BASE_URL}/playbyplay/playbyplay_${gameId}.json`;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 3000);
 
   try {
     const response = await fetchWithRetry(url, {
       headers: CDN_HEADERS,
       cache: 'no-store',
+      signal: controller.signal,
     });
 
     if (!response.ok) {
@@ -258,65 +251,10 @@ export async function getPlayByPlayV3(gameId: string): Promise<PlayByPlayV3Actio
     const data: PlayByPlayV3Response = await response.json();
     return data.game.actions;
   } catch (error) {
-    console.error('Play-by-Play fetch failed, returning mock data:', error);
-    return [
-      {
-        actionNumber: 2,
-        clock: "PT12M00.00S",
-        timeActual: "2024-01-01T00:00:00Z",
-        period: 1,
-        periodType: "REGULAR",
-        actionType: "period",
-        subType: "start",
-        qualifiers: [],
-        personId: 0,
-        teamId: 0,
-        teamTriplet: "",
-        description: "Period Start (Demo Data)",
-        scoreHome: "0",
-        scoreAway: "0",
-        pointsTotal: 0,
-        location: "h",
-      },
-      {
-        actionNumber: 4,
-        clock: "PT09M00.00S",
-        timeActual: "2024-01-01T00:15:00Z",
-        period: 1,
-        periodType: "REGULAR",
-        actionType: "2pt",
-        subType: "jump-shot",
-        qualifiers: [],
-        personId: 1,
-        playerName: "Player A",
-        teamId: 1610612754,
-        teamTriplet: "IND",
-        description: "Jump Shot (Demo Data)",
-        scoreHome: "0",
-        scoreAway: "2",
-        pointsTotal: 2,
-        location: "a",
-      },
-      {
-        actionNumber: 7,
-        clock: "PT00M00.00S",
-        timeActual: "2024-01-01T00:48:00Z",
-        period: 4,
-        periodType: "REGULAR",
-        actionType: "2pt",
-        subType: "jump-shot",
-        qualifiers: [],
-        personId: 1,
-        playerName: "Player A",
-        teamId: 1610612754,
-        teamTriplet: "IND",
-        description: "Jump Shot (Demo Data)",
-        scoreHome: "110",
-        scoreAway: "120",
-        pointsTotal: 2,
-        location: "a",
-      },
-    ];
+    console.error('Play-by-Play fetch failed:', error);
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
@@ -343,11 +281,14 @@ export async function getBoxScoreV3(gameId: string): Promise<any> {
   }
 
   const url = `${NBA_CDN_BASE_URL}/boxscore/boxscore_${gameId}.json`;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 3000);
   
   try {
     const response = await fetchWithRetry(url, {
       headers: CDN_HEADERS,
       cache: 'no-store',
+      signal: controller.signal,
     });
 
     if (!response.ok) {
@@ -358,28 +299,9 @@ export async function getBoxScoreV3(gameId: string): Promise<any> {
     const data = await response.json();
     return data.game;
   } catch (error) {
-    console.error('Boxscore fetch failed, returning mock data:', error);
-    return {
-      gameId: gameId,
-      gameStatus: 3,
-      homeTeam: {
-        teamId: 1610612737,
-        teamName: "Hawks",
-        teamCity: "Atlanta",
-        teamTricode: "ATL",
-        players: [
-          { personId: 1, name: "Player X" }
-        ],
-      },
-      awayTeam: {
-        teamId: 1610612754,
-        teamName: "Pacers",
-        teamCity: "Indiana",
-        teamTricode: "IND",
-        players: [
-          { personId: 2, name: "Player A" }
-        ],
-      },
-    };
+    console.error('Boxscore fetch failed:', error);
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
