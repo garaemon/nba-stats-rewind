@@ -97,7 +97,7 @@ describe('nba-api-client', () => {
         text: async () => 'Internal Error',
       });
 
-      await expect(getPlayByPlayV3('001')).rejects.toThrow('Failed to fetch play-by-play v3: 500 Internal Server Error - Internal Error');
-    });
+      await expect(getPlayByPlayV3('001')).rejects.toThrow('Failed to fetch after 3 retries');
+    }, 20000);
   });
 });
