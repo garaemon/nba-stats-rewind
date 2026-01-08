@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/nba-api/:path*",
+      "destination": "https://stats.nba.com/stats/:path*"
+    },
+    {
+      "source": "/nba-cdn/:path*",
+      "destination": "https://cdn.nba.com/static/json/liveData/:path*"
+    }
+  ]
+}
