@@ -62,25 +62,6 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
     ];
   }
 
-export async function getScoreboard(date: string): Promise<GameSummary[]> {
-  const isMockEnabled = process.env.USE_MOCK_DATA === 'true';
-  
-  if (isMockEnabled) {
-    return [
-      {
-        gameId: "0022300001",
-        gameDate: date,
-        homeTeamId: 1610612737,
-        visitorTeamId: 1610612754,
-        homeTeamName: "Atlanta Hawks",
-        visitorTeamName: "Indiana Pacers",
-        homeScore: 110,
-        visitorScore: 120,
-        gameStatusText: "Final",
-      },
-    ];
-  }
-
   // 1. Try "Today's Scoreboard" first (contains live scores)
   try {
     const controller = new AbortController();
