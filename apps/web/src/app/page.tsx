@@ -11,9 +11,21 @@ export default async function Home(props: {
   const params = await props.searchParams;
   const dateParam = params.date;
   
-  // Use current date as default
+  // Use current date as default, in Eastern Time (NBA time)
   const now = new Date();
-  const defaultDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const options: Intl.DateTimeFormatOptions = { 
+    timeZone: "America/New_York", 
+    year: 'numeric', 
+    month: '2-digit', 
+    day: '2-digit' 
+  };
+  const formatter = new Intl.DateTimeFormat('en-US', options);
+  const dateParts = formatter.formatToParts(now);
+  const yearStr = dateParts.find(p => p.type === 'year')?.value;
+  const monthStr = dateParts.find(p => p.type === 'month')?.value;
+  const dayStr = dateParts.find(p => p.type === 'day')?.value;
+  
+  const defaultDate = `${yearStr}-${monthStr}-${dayStr}`;
   
   const selectedDateStr = dateParam || defaultDate;
   
