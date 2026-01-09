@@ -63,20 +63,37 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
   }
 
   // Use CDN for today's games if possible (much more stable)
-  const today = new Date();
-  const todayStr = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}/${today.getFullYear()}`;
-  
-  if (date === todayStr) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
-      const url = `${NBA_CDN_BASE_URL}/scoreboard/todaysScoreboard_00.json`;
-      const response = await fetch(url, { headers: CDN_HEADERS, cache: 'no-store', signal: controller.signal });
-      clearTimeout(timeoutId);
+  // Always try CDN first as Stats API is unreliable/blocked
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+    const url = `${NBA_CDN_BASE_URL}/scoreboard/todaysScoreboard_00.json`;
+    const response = await fetch(url, { headers: CDN_HEADERS, cache: 'no-store', signal: controller.signal });
+    clearTimeout(timeoutId);
 
-      if (response.ok) {
-        const data = await response.json();
-        return data.scoreboard.games.map((game: any) => ({
+    if (response.ok) {
+      const data = await response.json();
+      const games = data.scoreboard.games;
+      
+      // Filter games that match the requested date
+      // gameEt is usually in ISO format or similar that Date can parse
+      const matchingGames = games.filter((game: any) => {
+        // We compare loosely or convert format
+        // The requested 'date' is MM/DD/YYYY
+        // game.gameEt might be "2024-01-08T19:30:00"
+        try {
+          // Simple string check if format matches, otherwise Date parsing
+          // Let's rely on Date parsing to be safe
+          const gameDateObj = new Date(game.gameEt);
+          const gameDateStr = `${String(gameDateObj.getMonth() + 1).padStart(2, '0')}/${String(gameDateObj.getDate()).padStart(2, '0')}/${gameDateObj.getFullYear()}`;
+          return gameDateStr === date;
+        } catch (e) {
+          return false;
+        }
+      });
+
+      if (matchingGames.length > 0) {
+        return matchingGames.map((game: any) => ({
           gameId: game.gameId,
           gameDate: game.gameEt,
           homeTeamId: game.homeTeam.teamId,
@@ -88,9 +105,9 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
           gameStatusText: game.gameStatusText,
         }));
       }
-    } catch (e) {
-      console.warn('Failed to fetch from CDN, falling back to stats API:', e);
     }
+  } catch (e) {
+    console.warn('Failed to fetch from CDN, falling back to stats API:', e);
   }
 
   const controller = new AbortController();
@@ -149,7 +166,6 @@ export async function getPlayByPlay(gameId: string): Promise<PlayByPlayEvent[]> 
   const response = await fetchWithRetry(url, {
     headers: {
       ...DEFAULT_HEADERS,
-      'Host': 'stats.nba.com',
     },
     cache: 'no-store',
   });

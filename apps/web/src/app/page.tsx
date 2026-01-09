@@ -11,8 +11,10 @@ export default async function Home(props: {
   const params = await props.searchParams;
   const dateParam = params.date;
   
-  // Default to 2026-01-04 if no param
-  const defaultDate = '2026-01-04';
+  // Use current date as default
+  const now = new Date();
+  const defaultDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  
   const selectedDateStr = dateParam || defaultDate;
   
   // Parse date manually to avoid timezone issues (YYYY-MM-DD)
