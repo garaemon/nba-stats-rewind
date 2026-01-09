@@ -11,6 +11,18 @@ interface PlaybackControlsProps {
   isLive: boolean;
 }
 
+/**
+ * PlaybackControls Component
+ *
+ * Handles the media playback interface for the game viewer.
+ * Responsibilities:
+ * - Play/Pause toggling
+ * - Seeking forward/backward (15s skip)
+ * - Seeking via timeline slider
+ * - Adjusting playback speed
+ * - Displaying current time and total duration
+ * - Syncing to live edge
+ */
 export function PlaybackControls({
   isPlaying,
   togglePlay,
@@ -29,13 +41,7 @@ export function PlaybackControls({
           className="w-10 h-10 flex items-center justify-center bg-slate-100 text-slate-600 rounded-full hover:bg-slate-200 transition-all active:scale-95"
           aria-label="Rewind 15 seconds"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <g transform="translate(24, 0) scale(-1, 1)">
-              <path d="m12 5l1.104-1.545c.41-.576.617-.864.487-1.13c-.13-.268-.46-.283-1.12-.314Q12.237 2 12 2C6.477 2 2 6.477 2 12s4.477 10 10 10s10-4.477 10-10a9.99 9.99 0 0 0-4-8"/>
-            </g>
-            <path d="M8 11c.528-.42 1.008-1.113 1.308-.984c.3.128.204.552.204 1.212v4.776"/>
-            <path d="M16 10h-2.64a.5.5 0 0 0-.49.402l-.366 2.102c.636-.264.957-.361 1.673-.361c1.036 0 1.927.637 1.825 1.957c.018 1.56-1.242 1.92-1.825 1.9c-.584-.02-1.517.2-1.677-1"/>
-          </svg>
+          <SkipIcon isRewind />
         </button>
 
         <button
@@ -55,11 +61,7 @@ export function PlaybackControls({
           className="w-10 h-10 flex items-center justify-center bg-slate-100 text-slate-600 rounded-full hover:bg-slate-200 transition-all active:scale-95"
           aria-label="Skip forward 15 seconds"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m12 5l1.104-1.545c.41-.576.617-.864.487-1.13c-.13-.268-.46-.283-1.12-.314Q12.237 2 12 2C6.477 2 2 6.477 2 12s4.477 10 10 10s10-4.477 10-10a9.99 9.99 0 0 0-4-8"/>
-            <path d="M8 11c.528-.42 1.008-1.113 1.308-.984c.3.128.204.552.204 1.212v4.776"/>
-            <path d="M16 10h-2.64a.5.5 0 0 0-.49.402l-.366 2.102c.636-.264.957-.361 1.673-.361c1.036 0 1.927.637 1.825 1.957c.018 1.56-1.242 1.92-1.825 1.9c-.584-.02-1.517.2-1.677-1"/>
-          </svg>
+          <SkipIcon />
         </button>
       </div>
 
@@ -105,5 +107,25 @@ export function PlaybackControls({
         </select>
       </div>
     </div>
+  );
+}
+
+function SkipIcon({ isRewind, className }: { isRewind?: boolean; className?: string }) {
+  const arrowPath = (
+    <path d="m12 5l1.104-1.545c.41-.576.617-.864.487-1.13c-.13-.268-.46-.283-1.12-.314Q12.237 2 12 2C6.477 2 2 6.477 2 12s4.477 10 10 10s10-4.477 10-10a9.99 9.99 0 0 0-4-8"/>
+  );
+
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      {isRewind ? (
+        <g transform="translate(24, 0) scale(-1, 1)">
+          {arrowPath}
+        </g>
+      ) : (
+        arrowPath
+      )}
+      <path d="M8 11c.528-.42 1.008-1.113 1.308-.984c.3.128.204.552.204 1.212v4.776"/>
+      <path d="M16 10h-2.64a.5.5 0 0 0-.49.402l-.366 2.102c.636-.264.957-.361 1.673-.361c1.036 0 1.927.637 1.825 1.957c.018 1.56-1.242 1.92-1.825 1.9c-.584-.02-1.517.2-1.677-1"/>
+    </svg>
   );
 }
