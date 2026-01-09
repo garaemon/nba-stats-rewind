@@ -62,8 +62,26 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
     ];
   }
 
-  // Use CDN for today's games if possible (much more stable)
-  // Always try CDN first as Stats API is unreliable/blocked
+export async function getScoreboard(date: string): Promise<GameSummary[]> {
+  const isMockEnabled = process.env.USE_MOCK_DATA === 'true';
+  
+  if (isMockEnabled) {
+    return [
+      {
+        gameId: "0022300001",
+        gameDate: date,
+        homeTeamId: 1610612737,
+        visitorTeamId: 1610612754,
+        homeTeamName: "Atlanta Hawks",
+        visitorTeamName: "Indiana Pacers",
+        homeScore: 110,
+        visitorScore: 120,
+        gameStatusText: "Final",
+      },
+    ];
+  }
+
+  // 1. Try "Today's Scoreboard" first (contains live scores)
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2000);
@@ -75,15 +93,8 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
       const data = await response.json();
       const games = data.scoreboard.games;
       
-      // Filter games that match the requested date
-      // gameEt is usually in ISO format or similar that Date can parse
       const matchingGames = games.filter((game: any) => {
-        // We compare loosely or convert format
-        // The requested 'date' is MM/DD/YYYY
-        // game.gameEt might be "2024-01-08T19:30:00"
         try {
-          // Simple string check if format matches, otherwise Date parsing
-          // Let's rely on Date parsing to be safe
           const gameDateObj = new Date(game.gameEt);
           const gameDateStr = `${String(gameDateObj.getMonth() + 1).padStart(2, '0')}/${String(gameDateObj.getDate()).padStart(2, '0')}/${gameDateObj.getFullYear()}`;
           return gameDateStr === date;
@@ -107,9 +118,42 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
       }
     }
   } catch (e) {
-    console.warn('Failed to fetch from CDN, falling back to stats API:', e);
+    console.warn('Failed to fetch from CDN (today), trying schedule:', e);
   }
 
+  // 2. Fallback to Schedule API for past/future games (No scores, but lists games)
+  try {
+    // This file is large, but cached on CDN.
+    const url = `https://cdn.nba.com/static/json/staticData/scheduleLeagueV2_2.json`;
+    const response = await fetch(url, { headers: CDN_HEADERS, next: { revalidate: 3600 } } as any);
+
+    if (response.ok) {
+      const data = await response.json();
+      const gameDates = data.leagueSchedule.gameDates;
+      
+      // Find the specific date entry
+      // The format in JSON is "MM/DD/YYYY 00:00:00"
+      const targetDateEntry = gameDates.find((entry: any) => entry.gameDate.startsWith(date));
+
+      if (targetDateEntry && targetDateEntry.games) {
+        return targetDateEntry.games.map((game: any) => ({
+          gameId: game.gameId,
+          gameDate: game.gameDateEst,
+          homeTeamId: game.homeTeam.teamId,
+          visitorTeamId: game.awayTeam.teamId,
+          homeTeamName: `${game.homeTeam.teamCity} ${game.homeTeam.teamName}`,
+          visitorTeamName: `${game.awayTeam.teamCity} ${game.awayTeam.teamName}`,
+          homeScore: 0, // Score not available in schedule
+          visitorScore: 0, // Score not available in schedule
+          gameStatusText: game.gameStatusText,
+        }));
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to fetch schedule from CDN:', e);
+  }
+
+  // 3. Last Resort: Stats API (Blocked on Vercel, but kept for local dev)
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 4000);
 
