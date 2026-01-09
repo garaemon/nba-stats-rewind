@@ -11,13 +11,21 @@ export default async function Home(props: {
   const params = await props.searchParams;
   const dateParam = params.date;
   
-  // Default to 2026-01-04 if no param
-  const defaultDate = '2026-01-04';
+  // Default to Eastern Time (ET) - NBA Standard
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-CA', { // YYYY-MM-DD format
+    timeZone: "America/New_York",
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  const defaultDate = formatter.format(now);
+  
   const selectedDateStr = dateParam || defaultDate;
   
-  // Parse date manually to avoid timezone issues (YYYY-MM-DD)
+  // Parse date manually (YYYY-MM-DD)
   const parts = selectedDateStr.split('-');
-  let year = 2026, month = 1, day = 4;
+  let year = now.getFullYear(), month = 1, day = 1;
   
   if (parts.length === 3) {
     year = parseInt(parts[0], 10);
@@ -25,18 +33,20 @@ export default async function Home(props: {
     day = parseInt(parts[2], 10);
   }
 
-  // Current date object (using local time for calendar consistency)
-  const current = new Date(year, month - 1, day);
+  // Display Date: Construct a UTC date at noon to avoid any timezone rollover issues when formatting
+  const displayDate = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
   
-  // NBA API Format (MM/DD/YYYY)
+  // NBA API Format (MM/DD/YYYY) - derived strictly from the YYYY-MM-DD parts
   const apiDate = `${String(month).padStart(2, '0')}/${String(day).padStart(2, '0')}/${year}`;
   
   // Navigation dates
-  const prev = new Date(year, month - 1, day - 1);
-  const next = new Date(year, month - 1, day + 1);
+  const currentMs = Date.UTC(year, month - 1, day);
+  const oneDay = 24 * 60 * 60 * 1000;
+  const prevDate = new Date(currentMs - oneDay);
+  const nextDate = new Date(currentMs + oneDay);
 
   const formatDate = (d: Date) => 
-    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
 
   let games: GameSummary[] = [];
   let errorDetail: any = null;
@@ -77,7 +87,7 @@ export default async function Home(props: {
         <nav className="mb-8 flex flex-col sm:flex-row items-center justify-between border-b border-slate-200 pb-6 gap-6">
           <div className="flex items-center gap-6">
             <Link 
-              href={`/?date=${formatDate(prev)}`}
+              href={`/?date=${formatDate(prevDate)}`}
               className="p-3 bg-white border border-slate-200 shadow-sm hover:bg-slate-50 rounded-full transition-all text-slate-600"
               prefetch={false}
               data-testid="prev-date"
@@ -87,7 +97,7 @@ export default async function Home(props: {
             
             <div className="text-center">
               <h2 className="text-2xl font-black text-slate-800 tracking-tight">
-                {current.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                {displayDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}
               </h2>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
                 Data for: {apiDate}
@@ -95,7 +105,7 @@ export default async function Home(props: {
             </div>
             
             <Link 
-              href={`/?date=${formatDate(next)}`}
+              href={`/?date=${formatDate(nextDate)}`}
               className="p-3 bg-white border border-slate-200 shadow-sm hover:bg-slate-50 rounded-full transition-all text-slate-600"
               prefetch={false}
               data-testid="next-date"

@@ -13,14 +13,10 @@ export const DEFAULT_HEADERS = {
   'x-nba-stats-token': 'true',
   'Referer': 'https://www.nba.com/',
   'Origin': 'https://www.nba.com',
-  'Connection': 'keep-alive',
 };
 
 const CDN_HEADERS = {
   ...DEFAULT_HEADERS,
-  'Host': 'cdn.nba.com',
-  'Referer': 'https://www.nba.com/',
-  'Origin': 'https://www.nba.com',
 };
 
 async function fetchWithRetry(url: string, options: RequestInit, retries = 3, delay = 1000): Promise<Response> {
@@ -66,21 +62,44 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
     ];
   }
 
-  // Use CDN for today's games if possible (much more stable)
-  const today = new Date();
-  const todayStr = `${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}/${today.getFullYear()}`;
-  
-  if (date === todayStr) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
-      const url = `${NBA_CDN_BASE_URL}/scoreboard/todaysScoreboard_00.json`;
-      const response = await fetch(url, { headers: CDN_HEADERS, cache: 'no-store', signal: controller.signal });
-      clearTimeout(timeoutId);
+  // 1. Try "Today's Scoreboard" first (contains live scores)
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+    const url = `${NBA_CDN_BASE_URL}/scoreboard/todaysScoreboard_00.json`;
+    const response = await fetch(url, { headers: CDN_HEADERS, cache: 'no-store', signal: controller.signal });
+    clearTimeout(timeoutId);
 
-      if (response.ok) {
-        const data = await response.json();
-        return data.scoreboard.games.map((game: any) => ({
+    if (response.ok) {
+      const data = await response.json();
+      const games = data.scoreboard.games;
+      
+      const etFormatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+
+      const matchingGames = games.filter((game: any) => {
+        try {
+          // game.gameEt includes timezone info or is UTC. 
+          // We must convert it to ET to determine the "NBA Day".
+          const gameDateObj = new Date(game.gameEt);
+          const parts = etFormatter.formatToParts(gameDateObj);
+          const month = parts.find(p => p.type === 'month')?.value;
+          const day = parts.find(p => p.type === 'day')?.value;
+          const year = parts.find(p => p.type === 'year')?.value;
+          
+          const gameDateStr = `${month}/${day}/${year}`;
+          return gameDateStr === date;
+        } catch (e) {
+          return false;
+        }
+      });
+
+      if (matchingGames.length > 0) {
+        return matchingGames.map((game: any) => ({
           gameId: game.gameId,
           gameDate: game.gameEt,
           homeTeamId: game.homeTeam.teamId,
@@ -92,11 +111,44 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
           gameStatusText: game.gameStatusText,
         }));
       }
-    } catch (e) {
-      console.warn('Failed to fetch from CDN, falling back to stats API:', e);
     }
+  } catch (e) {
+    console.warn('Failed to fetch from CDN (today), trying schedule:', e);
   }
 
+  // 2. Fallback to Schedule API for past/future games (No scores, but lists games)
+  try {
+    // This file is large, but cached on CDN.
+    const url = `https://cdn.nba.com/static/json/staticData/scheduleLeagueV2_2.json`;
+    const response = await fetch(url, { headers: CDN_HEADERS, next: { revalidate: 3600 } } as any);
+
+    if (response.ok) {
+      const data = await response.json();
+      const gameDates = data.leagueSchedule.gameDates;
+      
+      // Find the specific date entry
+      // The format in JSON is "MM/DD/YYYY 00:00:00"
+      const targetDateEntry = gameDates.find((entry: any) => entry.gameDate.startsWith(date));
+
+      if (targetDateEntry && targetDateEntry.games) {
+        return targetDateEntry.games.map((game: any) => ({
+          gameId: game.gameId,
+          gameDate: game.gameDateEst,
+          homeTeamId: game.homeTeam.teamId,
+          visitorTeamId: game.awayTeam.teamId,
+          homeTeamName: `${game.homeTeam.teamCity} ${game.homeTeam.teamName}`,
+          visitorTeamName: `${game.awayTeam.teamCity} ${game.awayTeam.teamName}`,
+          homeScore: 0, // Score not available in schedule
+          visitorScore: 0, // Score not available in schedule
+          gameStatusText: game.gameStatusText,
+        }));
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to fetch schedule from CDN:', e);
+  }
+
+  // 3. Last Resort: Stats API (Blocked on Vercel, but kept for local dev)
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 4000);
 
@@ -106,7 +158,6 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
     const response = await fetchWithRetry(url, {
       headers: {
         ...DEFAULT_HEADERS,
-        'Host': 'stats.nba.com',
       },
       cache: 'no-store',
       signal: controller.signal,
@@ -154,7 +205,6 @@ export async function getPlayByPlay(gameId: string): Promise<PlayByPlayEvent[]> 
   const response = await fetchWithRetry(url, {
     headers: {
       ...DEFAULT_HEADERS,
-      'Host': 'stats.nba.com',
     },
     cache: 'no-store',
   });
