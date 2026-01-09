@@ -4,8 +4,8 @@ export * from './types';
 
 const isBrowser = typeof window !== 'undefined';
 
-export const NBA_STATS_BASE_URL = isBrowser ? '/nba-api' : 'https://stats.nba.com/stats';
-export const NBA_CDN_BASE_URL = isBrowser ? '/nba-cdn' : 'https://cdn.nba.com/static/json/liveData';
+export const NBA_STATS_BASE_URL = 'https://stats.nba.com/stats';
+export const NBA_CDN_BASE_URL = 'https://cdn.nba.com/static/json/liveData';
 
 export const DEFAULT_HEADERS = {
   'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
