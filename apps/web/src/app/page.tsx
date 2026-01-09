@@ -1,6 +1,5 @@
 import { getScoreboard, GameSummary } from '@nba-stats-rewind/nba-api-client';
 import { GameCard } from '@/components/GameCard';
-import { DateRedirector } from '@/components/DateRedirector';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -12,13 +11,19 @@ export default async function Home(props: {
   const params = await props.searchParams;
   const dateParam = params.date;
   
-  // Default to server current date if no param (Client will redirect to local date)
+  // Default to Eastern Time (ET) - NBA Standard
   const now = new Date();
-  const defaultDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const formatter = new Intl.DateTimeFormat('en-CA', { // YYYY-MM-DD format
+    timeZone: "America/New_York",
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  const defaultDate = formatter.format(now);
   
   const selectedDateStr = dateParam || defaultDate;
   
-  // Parse date manually to avoid timezone issues (YYYY-MM-DD)
+  // Parse date manually (YYYY-MM-DD)
   const parts = selectedDateStr.split('-');
   let year = now.getFullYear(), month = 1, day = 1;
   
@@ -28,14 +33,13 @@ export default async function Home(props: {
     day = parseInt(parts[2], 10);
   }
 
-  // Use UTC Date for display to avoid timezone shifts
+  // Display Date: Construct a UTC date at noon to avoid any timezone rollover issues when formatting
   const displayDate = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
   
-  // NBA API Format (MM/DD/YYYY)
+  // NBA API Format (MM/DD/YYYY) - derived strictly from the YYYY-MM-DD parts
   const apiDate = `${String(month).padStart(2, '0')}/${String(day).padStart(2, '0')}/${year}`;
   
   // Navigation dates
-  // Simple date arithmetic using UTC to avoid DST issues
   const currentMs = Date.UTC(year, month - 1, day);
   const oneDay = 24 * 60 * 60 * 1000;
   const prevDate = new Date(currentMs - oneDay);
@@ -70,7 +74,6 @@ export default async function Home(props: {
 
   return (
     <main className="min-h-screen bg-slate-50 p-4 md:p-8 text-slate-900">
-      <DateRedirector />
       <div className="max-w-5xl mx-auto">
         <header className="mb-12 text-center">
           <Link href="/">
