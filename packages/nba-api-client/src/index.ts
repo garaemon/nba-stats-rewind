@@ -74,10 +74,24 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
       const data = await response.json();
       const games = data.scoreboard.games;
       
+      const etFormatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+
       const matchingGames = games.filter((game: any) => {
         try {
+          // game.gameEt includes timezone info or is UTC. 
+          // We must convert it to ET to determine the "NBA Day".
           const gameDateObj = new Date(game.gameEt);
-          const gameDateStr = `${String(gameDateObj.getMonth() + 1).padStart(2, '0')}/${String(gameDateObj.getDate()).padStart(2, '0')}/${gameDateObj.getFullYear()}`;
+          const parts = etFormatter.formatToParts(gameDateObj);
+          const month = parts.find(p => p.type === 'month')?.value;
+          const day = parts.find(p => p.type === 'day')?.value;
+          const year = parts.find(p => p.type === 'year')?.value;
+          
+          const gameDateStr = `${month}/${day}/${year}`;
           return gameDateStr === date;
         } catch (e) {
           return false;
