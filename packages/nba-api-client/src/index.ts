@@ -13,14 +13,10 @@ export const DEFAULT_HEADERS = {
   'x-nba-stats-token': 'true',
   'Referer': 'https://www.nba.com/',
   'Origin': 'https://www.nba.com',
-  'Connection': 'keep-alive',
 };
 
 const CDN_HEADERS = {
   ...DEFAULT_HEADERS,
-  'Host': 'cdn.nba.com',
-  'Referer': 'https://www.nba.com/',
-  'Origin': 'https://www.nba.com',
 };
 
 async function fetchWithRetry(url: string, options: RequestInit, retries = 3, delay = 1000): Promise<Response> {
@@ -106,7 +102,6 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
     const response = await fetchWithRetry(url, {
       headers: {
         ...DEFAULT_HEADERS,
-        'Host': 'stats.nba.com',
       },
       cache: 'no-store',
       signal: controller.signal,
