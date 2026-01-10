@@ -8,6 +8,8 @@ const eslintConfig = defineConfig([
   {
     rules: {
       "curly": ["error", "all"],
+      "brace-style": ["error", "1tbs", { "allowSingleLine": false }],
+      "indent": ["error", 2],
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unused-vars": "warn",
       "react-hooks/exhaustive-deps": "warn",
