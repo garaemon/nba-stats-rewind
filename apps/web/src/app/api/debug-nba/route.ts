@@ -29,22 +29,24 @@ export async function GET() {
     results.cdn.status = cdnRes.status;
     results.cdn.statusText = cdnRes.statusText;
     const resHeaders: Record<string, string> = {};
-    cdnRes.headers.forEach((v, k) => { resHeaders[k] = v; });
+    cdnRes.headers.forEach((v, k) => {
+      resHeaders[k] = v; 
+    });
     results.cdn.headers = resHeaders;
     
     if (cdnRes.ok) {
-        const json = await cdnRes.json();
-        results.cdn.dataPreview = {
-            meta: json.meta,
-            gameCount: json.scoreboard?.games?.length
-        };
+      const json = await cdnRes.json();
+      results.cdn.dataPreview = {
+        meta: json.meta,
+        gameCount: json.scoreboard?.games?.length
+      };
     }
   } catch (e: any) {
     results.cdn.error = {
-        message: e.message,
-        cause: e.cause ? String(e.cause) : undefined,
-        name: e.name,
-        stack: e.stack
+      message: e.message,
+      cause: e.cause ? String(e.cause) : undefined,
+      name: e.name,
+      stack: e.stack
     };
   }
   results.cdn.timing = performance.now() - startCdn;
@@ -64,14 +66,16 @@ export async function GET() {
     results.stats.status = statsRes.status;
     results.stats.statusText = statsRes.statusText;
     const resHeaders: Record<string, string> = {};
-    statsRes.headers.forEach((v, k) => { resHeaders[k] = v; });
+    statsRes.headers.forEach((v, k) => {
+      resHeaders[k] = v; 
+    });
     results.stats.headers = resHeaders;
   } catch (e: any) {
     results.stats.error = {
-        message: e.message,
-        cause: e.cause ? String(e.cause) : undefined,
-        name: e.name,
-        stack: e.stack
+      message: e.message,
+      cause: e.cause ? String(e.cause) : undefined,
+      name: e.name,
+      stack: e.stack
     };
   }
   results.stats.timing = performance.now() - startStats;
@@ -79,33 +83,33 @@ export async function GET() {
   // 3. Simulate getScoreboard Logic (Logic inside nba-api-client)
   const startFallback = performance.now();
   try {
-      // Trying to fetch a specific date (today) via CDN as the client does
-      const today = new Date();
-      // Format today as YYYY-MM-DD for checking against API response if needed, 
-      // but here we just test the specific URL structure used in client
-      const url = `https://cdn.nba.com/static/json/liveData/scoreboard/todaysScoreboard_00.json`;
+    // Trying to fetch a specific date (today) via CDN as the client does
+    const today = new Date();
+    // Format today as YYYY-MM-DD for checking against API response if needed, 
+    // but here we just test the specific URL structure used in client
+    const url = `https://cdn.nba.com/static/json/liveData/scoreboard/todaysScoreboard_00.json`;
       
-      const response = await fetch(url, { 
-          headers: { ...headers }, 
-          cache: 'no-store' 
-      });
+    const response = await fetch(url, { 
+      headers: { ...headers }, 
+      cache: 'no-store' 
+    });
 
-      results.scoreboard_fallback.status = response.status;
-      results.scoreboard_fallback.statusText = response.statusText;
+    results.scoreboard_fallback.status = response.status;
+    results.scoreboard_fallback.statusText = response.statusText;
       
-      if (response.ok) {
-          const data = await response.json();
-          results.scoreboard_fallback.dataPreview = {
-              gamesFound: data.scoreboard?.games?.length || 0,
-              firstGameId: data.scoreboard?.games?.[0]?.gameId
-          };
-      }
-  } catch (e: any) {
-      results.scoreboard_fallback.error = {
-        message: e.message,
-        cause: e.cause ? String(e.cause) : undefined,
-        name: e.name
+    if (response.ok) {
+      const data = await response.json();
+      results.scoreboard_fallback.dataPreview = {
+        gamesFound: data.scoreboard?.games?.length || 0,
+        firstGameId: data.scoreboard?.games?.[0]?.gameId
       };
+    }
+  } catch (e: any) {
+    results.scoreboard_fallback.error = {
+      message: e.message,
+      cause: e.cause ? String(e.cause) : undefined,
+      name: e.name
+    };
   }
   results.scoreboard_fallback.timing = performance.now() - startFallback;
 

@@ -56,7 +56,7 @@ export function calculateBoxScore(
   initialPlayers?: { home: any[]; away: any[] }
 ): BoxScore | null {
   const teamIds = Array.from(new Set(actions.filter(a => a.teamId !== 0).map(a => a.teamId)));
-  
+
   // If IDs not provided, try to infer or just pick.
   let finalHomeId = homeTeamId;
   let finalAwayId = awayTeamId;
@@ -134,7 +134,9 @@ export function calculateBoxScore(
   actions.forEach((action) => {
     const { actionType, shotResult, teamId, personId, playerName, teamTriplet } = action;
 
-    if (!teamId || teamId === 0) return;
+    if (!teamId || teamId === 0) {
+      return;
+    }
 
     // Initialize team if not exists
     if (!stats[teamId]) {
@@ -190,8 +192,11 @@ export function calculateBoxScore(
     if (actionType === 'rebound') {
       if (personId === 0) {
         // Team rebound
-        if (action.subType === 'offensive') stats[teamId].oreb++;
-        else stats[teamId].dreb++;
+        if (action.subType === 'offensive') {
+          stats[teamId].oreb++;
+        } else {
+          stats[teamId].dreb++;
+        }
         stats[teamId].reb++;
       } else {
         const p = getOrCreatePlayer(teamId, personId, playerName || 'Unknown', teamTriplet);
@@ -237,4 +242,3 @@ export function calculateBoxScore(
     away: stats[finalAwayId!] || createTeamStats(finalAwayId || 0, 'AWAY'),
   };
 }
-

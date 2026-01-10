@@ -60,7 +60,7 @@ export default async function Home(props: {
     let message = e instanceof Error ? e.message : 'Unknown error';
     // Check for AbortError or timeout related messages
     if (e?.name === 'AbortError' || message.includes('aborted') || message.includes('timeout')) {
-       message = 'Connection timed out. The NBA API server is not responding (likely due to rate limiting or IP blocking).';
+      message = 'Connection timed out. The NBA API server is not responding (likely due to rate limiting or IP blocking).';
     }
 
     errorDetail = {
@@ -115,14 +115,14 @@ export default async function Home(props: {
           </div>
           
           <div className="flex items-center gap-3">
-             <span className="text-xs font-black px-4 py-1.5 bg-slate-900 text-white rounded-full uppercase tracking-tighter">
-               {games.length} Games Found
-             </span>
-             {dateParam && (
-               <Link href="/" className="text-xs font-bold text-blue-600 hover:text-blue-800 bg-blue-50 px-3 py-1.5 rounded-md transition-colors">
+            <span className="text-xs font-black px-4 py-1.5 bg-slate-900 text-white rounded-full uppercase tracking-tighter">
+              {games.length} Games Found
+            </span>
+            {dateParam && (
+              <Link href="/" className="text-xs font-bold text-blue-600 hover:text-blue-800 bg-blue-50 px-3 py-1.5 rounded-md transition-colors">
                  Today
-               </Link>
-             )}
+              </Link>
+            )}
           </div>
         </nav>
 

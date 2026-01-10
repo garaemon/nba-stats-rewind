@@ -30,7 +30,9 @@ export function useLiveGame({
   const fetchData = async () => {
     try {
       const response = await fetch(`/api/game/${gameId}`);
-      if (!response.ok) throw new Error('Failed to fetch');
+      if (!response.ok) {
+        throw new Error('Failed to fetch');
+      }
       const data = await response.json();
       
       setActions(data.actions);
