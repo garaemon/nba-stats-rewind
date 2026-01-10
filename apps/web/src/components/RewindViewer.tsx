@@ -7,6 +7,7 @@ import { usePlayback } from '@/hooks/usePlayback';
 import { calculateBoxScore, TeamStats, PlayerStats } from '@/utils/boxScore';
 import { useLiveGame } from '@/hooks/useLiveGame';
 import { MomentumGraph } from './MomentumGraph';
+import { PlaybackControls } from './PlaybackControls';
 
 interface RewindViewerProps {
   gameId: string;
@@ -160,61 +161,16 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
             onSeek={seek} 
           />
 
-          <div className="flex flex-col md:flex-row items-center gap-6">
-            <button
-              onClick={togglePlay}
-              className="w-14 h-14 flex items-center justify-center bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-200"
-              aria-label={isPlaying ? 'Pause' : 'Play'}
-            >
-              {isPlaying ? (
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="m7 4 12 8-12 8V4z"/></svg>
-              )}
-            </button>
-
-            <div className="flex-1 w-full space-y-2">
-              <div className="flex justify-between items-center text-xs font-black text-slate-500 uppercase tracking-tighter">
-                <span data-testid="current-time-offset">{Math.floor(currentTime / 60)}m elapsed</span>
-                <div className="flex items-center gap-2">
-                  {isLive && currentTime < totalDuration - 5 && (
-                    <button 
-                      onClick={() => seek(totalDuration)}
-                      className="px-2 py-1 bg-red-600 text-white rounded text-[10px] animate-pulse hover:bg-red-700 transition-colors"
-                    >
-                      SYNC TO LIVE
-                    </button>
-                  )}
-                  <span data-testid="total-duration">{Math.floor(totalDuration / 60)}m total</span>
-                </div>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max={totalDuration}
-                step="1"
-                value={currentTime}
-                onChange={(e) => seek(parseFloat(e.target.value))}
-                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                data-testid="seek-slider"
-              />
-            </div>
-
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-black text-slate-500 uppercase">Speed</span>
-              <select
-                value={playbackSpeed}
-                onChange={(e) => setPlaybackSpeed(parseFloat(e.target.value))}
-                className="bg-slate-100 border-none text-sm font-bold rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 cursor-pointer"
-              >
-                {[1, 2, 4, 10, 20, 50, 100].map((speed) => (
-                  <option key={speed} value={speed}>
-                    {speed}x
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+          <PlaybackControls
+            isPlaying={isPlaying}
+            togglePlay={togglePlay}
+            currentTime={currentTime}
+            totalDuration={totalDuration}
+            seek={seek}
+            playbackSpeed={playbackSpeed}
+            setPlaybackSpeed={setPlaybackSpeed}
+            isLive={isLive}
+          />
         </div>
       </div>
 
