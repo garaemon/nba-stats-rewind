@@ -134,7 +134,7 @@ export function calculateBoxScore(
   actions.forEach((action) => {
     const { actionType, shotResult, teamId, personId, playerName, teamTriplet } = action;
 
-    if (!teamId || teamId === 0) return;
+    if (!teamId || teamId === 0) {return;}
 
     // Initialize team if not exists
     if (!stats[teamId]) {
@@ -190,8 +190,8 @@ export function calculateBoxScore(
     if (actionType === 'rebound') {
       if (personId === 0) {
         // Team rebound
-        if (action.subType === 'offensive') stats[teamId].oreb++;
-        else stats[teamId].dreb++;
+        if (action.subType === 'offensive') {stats[teamId].oreb++;}
+        else {stats[teamId].dreb++;}
         stats[teamId].reb++;
       } else {
         const p = getOrCreatePlayer(teamId, personId, playerName || 'Unknown', teamTriplet);

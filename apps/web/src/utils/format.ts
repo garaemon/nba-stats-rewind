@@ -10,7 +10,7 @@ export const formatClock = (clock: string) => {
  */
 export const clockToSeconds = (clock: string): number => {
   const match = clock.match(/PT(\d+)M(\d+)(\.\d+)?S/);
-  if (!match) return 0;
+  if (!match) {return 0;}
   const minutes = parseInt(match[1], 10);
   const seconds = parseInt(match[2], 10);
   return minutes * 60 + seconds;

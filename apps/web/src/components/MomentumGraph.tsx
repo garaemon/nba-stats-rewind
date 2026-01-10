@@ -30,7 +30,7 @@ export function MomentumGraph({ actions, totalDuration, currentTime, onSeek }: M
   }, []);
 
   const dataPoints = useMemo(() => {
-    if (actions.length === 0) return [];
+    if (actions.length === 0) {return [];}
 
     // Filter for scoring actions or just take all actions to be safe
     // and map them to [timeOffset, margin]
@@ -76,7 +76,7 @@ export function MomentumGraph({ actions, totalDuration, currentTime, onSeek }: M
     const getX = (time: number) => (time / totalDuration) * dimensions.width;
     const getY = (margin: number) => (dimensions.height / 2) - (margin / currentMax) * (dimensions.height / 2);
 
-    if (visiblePoints.length === 0) return { pathData: '', maxMargin: 10 };
+    if (visiblePoints.length === 0) {return { pathData: '', maxMargin: 10 };}
 
     let d = `M ${getX(visiblePoints[0].x)} ${getY(visiblePoints[0].y)}`;
     
@@ -90,12 +90,12 @@ export function MomentumGraph({ actions, totalDuration, currentTime, onSeek }: M
   }, [dataPoints, totalDuration, dimensions, currentTime]);
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (e.buttons !== 1) return;
+    if (e.buttons !== 1) {return;}
     handleSeek(e);
   };
 
   const handleSeek = (e: React.PointerEvent | React.MouseEvent) => {
-    if (!containerRef.current) return;
+    if (!containerRef.current) {return;}
     const rect = containerRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const percentage = Math.max(0, Math.min(1, x / dimensions.width));

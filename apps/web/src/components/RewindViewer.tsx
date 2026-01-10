@@ -31,7 +31,7 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
 
   // Process actions and calculate relative wall-clock time
   const { processedActions, startTime, totalDuration, homeTeamId, awayTeamId } = useMemo(() => {
-    if (actions.length === 0) return { processedActions: [], startTime: 0, totalDuration: 2880, homeTeamId: 0, awayTeamId: 0 };
+    if (actions.length === 0) {return { processedActions: [], startTime: 0, totalDuration: 2880, homeTeamId: 0, awayTeamId: 0 };}
 
     const sorted = [...actions].sort((a, b) => a.actionNumber - b.actionNumber);
     const start = parseActualTime(sorted[0].timeActual);
@@ -95,7 +95,7 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
   // Find the latest game clock to display
   const currentGameClock = useMemo(() => {
     const latest = visibleActions[visibleActions.length - 1];
-    if (!latest) return "Pre-game";
+    if (!latest) {return "Pre-game";}
     return formatGameTime(latest.gameTimeSeconds);
   }, [visibleActions]);
 
