@@ -2,10 +2,9 @@
 
 NBA Stats Rewind is a web application that allows users to "rewind" and "replay" NBA game statistics as if they were happening in real-time or at a specific point in time. It's designed for fans who want a spoiler-free delayed viewing experience or for those who want to analyze game momentum and clutch moments in detail.
 
-## Links
+## Live Demo
 
-- Live Demo: [https://nba.garaemon.com](https://nba.garaemon.com)
-- GitHub Project: [https://github.com/garaemon/nba-stats-rewind](https://github.com/garaemon/nba-stats-rewind)
+[https://nba.garaemon.com](https://nba.garaemon.com)
 
 ## Key Features
 

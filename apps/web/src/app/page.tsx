@@ -164,6 +164,7 @@ export default async function Home(props: {
             rel="noopener noreferrer"
             className="text-slate-500 hover:text-slate-800 transition-colors text-sm font-medium inline-flex items-center gap-2"
           >
+            {/* GitHub Icon */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"
