@@ -1,5 +1,8 @@
 'use client';
 
+const SKIP_DURATION = 15;
+const PLAYBACK_SPEEDS = [1, 2, 4, 10, 20, 50, 100];
+
 interface PlaybackControlsProps {
   isPlaying: boolean;
   togglePlay: () => void;
@@ -37,9 +40,9 @@ export function PlaybackControls({
     <div className="flex flex-col md:flex-row items-center gap-6">
       <div className="flex items-center gap-3">
         <button
-          onClick={() => seek(currentTime - 15)}
+          onClick={() => seek(currentTime - SKIP_DURATION)}
           className="w-10 h-10 flex items-center justify-center bg-slate-100 text-slate-600 rounded-full hover:bg-slate-200 transition-all active:scale-95"
-          aria-label="Rewind 15 seconds"
+          aria-label={`Rewind ${SKIP_DURATION} seconds`}
         >
           <SkipIcon isRewind />
         </button>
@@ -57,9 +60,9 @@ export function PlaybackControls({
         </button>
 
         <button
-          onClick={() => seek(currentTime + 15)}
+          onClick={() => seek(currentTime + SKIP_DURATION)}
           className="w-10 h-10 flex items-center justify-center bg-slate-100 text-slate-600 rounded-full hover:bg-slate-200 transition-all active:scale-95"
-          aria-label="Skip forward 15 seconds"
+          aria-label={`Skip forward ${SKIP_DURATION} seconds`}
         >
           <SkipIcon />
         </button>
@@ -99,7 +102,7 @@ export function PlaybackControls({
           onChange={(e) => setPlaybackSpeed(parseFloat(e.target.value))}
           className="bg-slate-100 border-none text-sm font-bold rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-500 cursor-pointer"
         >
-          {[1, 2, 4, 10, 20, 50, 100].map((speed) => (
+          {PLAYBACK_SPEEDS.map((speed) => (
             <option key={speed} value={speed}>
               {speed}x
             </option>
