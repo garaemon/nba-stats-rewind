@@ -15,7 +15,13 @@ export function GameCard({ game }: { game: GameSummary }) {
     >
       <div className="bg-slate-50 px-4 py-2 border-b border-slate-100 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <div className={`w-2 h-2 rounded-full ${game.gameStatusText.toLowerCase().includes('final') ? 'bg-slate-300' : 'bg-green-500 animate-pulse'}`}></div>
+          <div className={`w-2 h-2 rounded-full ${
+            game.gameStatusText.toLowerCase().includes('final') 
+              ? 'bg-slate-300' 
+              : (game.gameStatusText.toLowerCase().includes('et') || game.gameStatusText.toLowerCase().includes('pm') || game.gameStatusText.toLowerCase().includes('am'))
+                ? 'bg-blue-500'
+                : 'bg-green-500 animate-pulse'
+          }`}></div>
           <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
             {game.gameStatusText}
           </span>
