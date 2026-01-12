@@ -97,7 +97,7 @@ export default async function Home(props: {
             
             <div className="text-center">
               <h2 className="text-2xl font-black text-slate-800 tracking-tight">
-                {displayDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}
+                {displayDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}
               </h2>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
                 Data for: {apiDate}
