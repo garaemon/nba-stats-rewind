@@ -1,11 +1,36 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { GameSummary } from '@nba-stats-rewind/nba-api-client';
 import Link from 'next/link';
+import { useTimezone } from './TimezoneProvider';
 
 export function GameCard({ game }: { game: GameSummary }) {
+  const { timezone } = useTimezone();
   const [showScore, setShowScore] = useState(false);
+  const [formattedTime, setFormattedTime] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Only format time for scheduled games (status 1) if UTC time is available
+    if (game.gameStatus === 1 && game.gameTimeUTC) {
+      try {
+        const date = new Date(game.gameTimeUTC);
+        const formatter = new Intl.DateTimeFormat('en-US', {
+          timeZone: timezone,
+          hour: 'numeric',
+          minute: '2-digit',
+          timeZoneName: 'short'
+        });
+        setFormattedTime(formatter.format(date));
+      } catch (e) {
+        console.error('Failed to format game time', e);
+      }
+    } else {
+      setFormattedTime(null);
+    }
+  }, [game.gameStatus, game.gameTimeUTC, timezone]);
+
+  const displayStatus = formattedTime ?? game.gameStatusText;
 
   return (
     <Link 
@@ -23,7 +48,7 @@ export function GameCard({ game }: { game: GameSummary }) {
                 : 'bg-green-500 animate-pulse'
           }`}></div>
           <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-            {game.gameStatusText}
+            {displayStatus}
           </span>
         </div>
         {showScore && (

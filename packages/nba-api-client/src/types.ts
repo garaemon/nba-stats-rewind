@@ -20,6 +20,8 @@ export interface GameSummary {
   homeScore: number;
   visitorScore: number;
   gameStatusText: string;
+  gameStatus: number;
+  gameTimeUTC?: string;
 }
 
 export interface PlayByPlayEvent {

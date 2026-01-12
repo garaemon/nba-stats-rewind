@@ -58,6 +58,8 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
         homeScore: 110,
         visitorScore: 120,
         gameStatusText: "Final",
+        gameStatus: 3,
+        gameTimeUTC: "2024-01-01T00:00:00Z",
       },
     ];
   }
@@ -109,6 +111,8 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
           homeScore: game.homeTeam.score,
           visitorScore: game.awayTeam.score,
           gameStatusText: game.gameStatusText,
+          gameStatus: game.gameStatus,
+          gameTimeUTC: game.gameTimeUTC,
         }));
       }
     }
@@ -141,6 +145,8 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
           homeScore: 0, // Score not available in schedule
           visitorScore: 0, // Score not available in schedule
           gameStatusText: game.gameStatusText,
+          gameStatus: game.gameStatus,
+          gameTimeUTC: game.gameDateTimeUTC,
         }));
       }
     }
@@ -187,6 +193,7 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
         homeScore: homeTeam?.pts ?? 0,
         visitorScore: visitorTeam?.pts ?? 0,
         gameStatusText: header.gameStatusText,
+        gameStatus: header.gameStatusId, // Stats API usually uses gameStatusId
       };
     });
   } catch (error) {

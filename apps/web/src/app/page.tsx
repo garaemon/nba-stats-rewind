@@ -1,5 +1,6 @@
 import { getScoreboard, GameSummary } from '@nba-stats-rewind/nba-api-client';
 import { GameCard } from '@/components/GameCard';
+import { TimezoneSelector } from '@/components/TimezoneSelector';
 import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
@@ -115,6 +116,9 @@ export default async function Home(props: {
           </div>
           
           <div className="flex items-center gap-3">
+            <div>
+              <TimezoneSelector />
+            </div>
             <span className="text-xs font-black px-4 py-1.5 bg-slate-900 text-white rounded-full uppercase tracking-tighter">
               {games.length} Games Found
             </span>
