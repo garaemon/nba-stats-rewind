@@ -23,7 +23,7 @@ export function GameCard({ game }: { game: GameSummary }) {
                 : 'bg-green-500 animate-pulse'
           }`}></div>
           <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-            {game.gameStatusText}
+            {game.gameStatusText.toLowerCase().includes('final') ? 'Final' : game.gameStatusText}
           </span>
         </div>
         {showScore && (
