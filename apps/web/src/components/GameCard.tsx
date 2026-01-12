@@ -34,6 +34,11 @@ export function GameCard({ game }: { game: GameSummary }) {
       </div>
       
       <div className="p-6 space-y-4">
+        {game.arenaName && (
+          <div className="text-xs text-slate-400 text-right -mt-2 mb-2 font-medium">
+            @ {game.arenaName}{game.arenaCity ? `, ${game.arenaCity}` : ''}
+          </div>
+        )}
         <div className="flex justify-between items-center">
           <span className="text-lg font-semibold text-slate-700">{game.visitorTeamName}</span>
           <span 

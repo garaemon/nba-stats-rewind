@@ -20,6 +20,9 @@ export interface GameSummary {
   homeScore: number;
   visitorScore: number;
   gameStatusText: string;
+  arenaName?: string;
+  arenaCity?: string;
+  arenaState?: string;
 }
 
 export interface PlayByPlayEvent {

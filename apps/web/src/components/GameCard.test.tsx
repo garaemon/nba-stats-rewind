@@ -35,6 +35,16 @@ describe('GameCard', () => {
     expect(homeScore).toHaveClass('blur-md');
   });
 
+  it('renders arena info when provided', () => {
+    const gameWithArena = {
+      ...mockGame,
+      arenaName: 'Crypto.com Arena',
+      arenaCity: 'Los Angeles'
+    };
+    render(<GameCard game={gameWithArena} />);
+    expect(screen.getByText(/@ Crypto.com Arena, Los Angeles/)).toBeInTheDocument();
+  });
+
   it('toggles score visibility when clicking the button', () => {
     render(<GameCard game={mockGame} />);
     
