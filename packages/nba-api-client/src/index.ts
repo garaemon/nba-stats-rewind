@@ -43,6 +43,19 @@ async function fetchWithRetry(url: string, options: RequestInit, retries = 3, de
   throw new Error(`Failed to fetch after ${retries} retries`);
 }
 
+async function fetchSchedule(): Promise<any> {
+  try {
+    const url = `https://cdn.nba.com/static/json/staticData/scheduleLeagueV2_2.json`;
+    const response = await fetch(url, { headers: CDN_HEADERS, next: { revalidate: 3600 } } as any);
+    if (response.ok) {
+      return await response.json();
+    }
+  } catch (e) {
+    console.warn('Failed to fetch schedule from CDN:', e);
+  }
+  return null;
+}
+
 export async function getScoreboard(date: string): Promise<GameSummary[]> {
   const isMockEnabled = process.env.USE_MOCK_DATA === 'true';
   
@@ -58,6 +71,9 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
         homeScore: 110,
         visitorScore: 120,
         gameStatusText: "Final",
+        arenaName: "State Farm Arena",
+        arenaCity: "Atlanta",
+        arenaState: "GA"
       },
     ];
   }
@@ -67,11 +83,17 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2000);
     const url = `${NBA_CDN_BASE_URL}/scoreboard/todaysScoreboard_00.json`;
-    const response = await fetch(url, { headers: CDN_HEADERS, cache: 'no-store', signal: controller.signal });
+
+    // Fetch both concurrently, but handle failures gracefully
+    const [todaysResponse, scheduleData] = await Promise.all([
+        fetch(url, { headers: CDN_HEADERS, cache: 'no-store', signal: controller.signal }),
+        fetchSchedule()
+    ]);
+
     clearTimeout(timeoutId);
 
-    if (response.ok) {
-      const data = await response.json();
+    if (todaysResponse.ok) {
+      const data = await todaysResponse.json();
       const games = data.scoreboard.games;
       
       const etFormatter = new Intl.DateTimeFormat('en-US', {
@@ -98,18 +120,40 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
         }
       });
 
+      // Create a map for arena info from schedule
+      const arenaMap = new Map<string, { name: string, city: string, state: string }>();
+      if (scheduleData && scheduleData.leagueSchedule && scheduleData.leagueSchedule.gameDates) {
+          scheduleData.leagueSchedule.gameDates.forEach((d: any) => {
+              d.games.forEach((g: any) => {
+                  if (g.gameId) {
+                      arenaMap.set(g.gameId, {
+                          name: g.arenaName,
+                          city: g.arenaCity,
+                          state: g.arenaState
+                      });
+                  }
+              });
+          });
+      }
+
       if (matchingGames.length > 0) {
-        return matchingGames.map((game: any) => ({
-          gameId: game.gameId,
-          gameDate: game.gameEt,
-          homeTeamId: game.homeTeam.teamId,
-          visitorTeamId: game.awayTeam.teamId,
-          homeTeamName: `${game.homeTeam.teamCity} ${game.homeTeam.teamName}`,
-          visitorTeamName: `${game.awayTeam.teamCity} ${game.awayTeam.teamName}`,
-          homeScore: game.homeTeam.score,
-          visitorScore: game.awayTeam.score,
-          gameStatusText: game.gameStatusText,
-        }));
+        return matchingGames.map((game: any) => {
+          const arenaInfo = arenaMap.get(game.gameId);
+          return {
+            gameId: game.gameId,
+            gameDate: game.gameEt,
+            homeTeamId: game.homeTeam.teamId,
+            visitorTeamId: game.awayTeam.teamId,
+            homeTeamName: `${game.homeTeam.teamCity} ${game.homeTeam.teamName}`,
+            visitorTeamName: `${game.awayTeam.teamCity} ${game.awayTeam.teamName}`,
+            homeScore: game.homeTeam.score,
+            visitorScore: game.awayTeam.score,
+            gameStatusText: game.gameStatusText,
+            arenaName: arenaInfo?.name,
+            arenaCity: arenaInfo?.city,
+            arenaState: arenaInfo?.state,
+          };
+        });
       }
     }
   } catch (e) {
@@ -118,12 +162,9 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
 
   // 2. Fallback to Schedule API for past/future games (No scores, but lists games)
   try {
-    // This file is large, but cached on CDN.
-    const url = `https://cdn.nba.com/static/json/staticData/scheduleLeagueV2_2.json`;
-    const response = await fetch(url, { headers: CDN_HEADERS, next: { revalidate: 3600 } } as any);
+    const data = await fetchSchedule();
 
-    if (response.ok) {
-      const data = await response.json();
+    if (data) {
       const gameDates = data.leagueSchedule.gameDates;
       
       // Find the specific date entry
@@ -141,6 +182,9 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
           homeScore: 0, // Score not available in schedule
           visitorScore: 0, // Score not available in schedule
           gameStatusText: game.gameStatusText,
+          arenaName: game.arenaName,
+          arenaCity: game.arenaCity,
+          arenaState: game.arenaState,
         }));
       }
     }
@@ -187,6 +231,7 @@ export async function getScoreboard(date: string): Promise<GameSummary[]> {
         homeScore: homeTeam?.pts ?? 0,
         visitorScore: visitorTeam?.pts ?? 0,
         gameStatusText: header.gameStatusText,
+        // Stats API might have arena info in GameHeader but we rely on CDN mostly now.
       };
     });
   } catch (error) {
