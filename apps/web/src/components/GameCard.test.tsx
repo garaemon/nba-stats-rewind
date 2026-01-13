@@ -39,10 +39,11 @@ describe('GameCard', () => {
     const gameWithArena = {
       ...mockGame,
       arenaName: 'Crypto.com Arena',
-      arenaCity: 'Los Angeles'
+      arenaCity: 'Los Angeles',
+      arenaState: 'CA'
     };
     render(<GameCard game={gameWithArena} />);
-    expect(screen.getByText(/@ Crypto.com Arena, Los Angeles/)).toBeInTheDocument();
+    expect(screen.getByText(/@ Crypto.com Arena, Los Angeles, CA/)).toBeInTheDocument();
   });
 
   it('toggles score visibility when clicking the button', () => {
