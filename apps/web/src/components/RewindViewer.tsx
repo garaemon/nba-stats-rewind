@@ -35,7 +35,14 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
       return { processedActions: [], startTime: 0, totalDuration: 2880, homeTeamId: 0, awayTeamId: 0 };
     }
 
-    const sorted = [...actions].sort((a, b) => a.actionNumber - b.actionNumber);
+    const sorted = [...actions].sort((a, b) => {
+      const timeA = getGameTimeSeconds(a.period, clockToSeconds(a.clock));
+      const timeB = getGameTimeSeconds(b.period, clockToSeconds(b.clock));
+      if (timeA !== timeB) {
+        return timeA - timeB;
+      }
+      return a.actionNumber - b.actionNumber;
+    });
     const start = parseActualTime(sorted[0].timeActual);
     const end = parseActualTime(sorted[sorted.length - 1].timeActual);
     
