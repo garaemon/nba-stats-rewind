@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatClock, clockToSeconds, getGameTimeSeconds, formatGameTime } from './format';
+import { formatClock, clockToSeconds, getGameTimeSeconds, formatGameTime, formatDate } from './format';
 
 describe('format utils', () => {
   describe('formatClock', () => {
@@ -67,6 +67,15 @@ describe('format utils', () => {
 
     it('should format 360 as Q1 6:00', () => {
       expect(formatGameTime(360)).toBe('Q1 6:00');
+    });
+  });
+
+  describe('formatDate', () => {
+    it('should format ISO string to readable date', () => {
+      // Note: This test might depend on timezone if not handled carefully,
+      // but formatDate uses explicit locale options.
+      // Assuming English US locale environment for tests.
+      expect(formatDate('2023-11-03T19:00:00-04:00')).toBe('Friday, November 3, 2023');
     });
   });
 });

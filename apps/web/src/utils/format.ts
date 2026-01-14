@@ -65,3 +65,18 @@ export const formatActualTime = (isoString: string | number) => {
 export const parseActualTime = (isoString: string) => {
   return new Date(isoString).getTime();
 };
+
+/**
+ * Formats ISO 8601 string to Date string (e.g. Friday, November 3, 2023)
+ * Defaults to Eastern Time to align with NBA schedule.
+ */
+export const formatDate = (isoString: string | number) => {
+  const date = new Date(isoString);
+  return date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'America/New_York'
+  });
+};
