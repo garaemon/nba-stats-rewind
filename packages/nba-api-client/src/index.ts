@@ -357,6 +357,12 @@ export async function getBoxScoreV3(gameId: string): Promise<any> {
   if (process.env.USE_MOCK_DATA === 'true') {
     return {
       gameId: gameId,
+      gameEt: "2024-01-01T19:00:00-05:00",
+      arena: {
+        arenaName: "State Farm Arena",
+        arenaCity: "Atlanta",
+        arenaState: "GA"
+      },
       gameStatus: 3,
       homeTeam: {
         teamId: 1610612737,

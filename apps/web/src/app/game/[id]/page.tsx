@@ -1,6 +1,7 @@
 import { getPlayByPlayV3, getBoxScoreV3, PlayByPlayV3Action } from '@nba-stats-rewind/nba-api-client';
 import Link from 'next/link';
 import { RewindViewer } from '@/components/RewindViewer';
+import { formatDate } from '@/utils/format';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -38,9 +39,14 @@ export default async function GameRewindPage(props: {
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
               Back to Scoreboard
             </Link>
-            <h1 className="text-3xl font-black text-slate-900">
-              {gameDetails ? `${gameDetails.awayTeam.teamName} vs ${gameDetails.homeTeam.teamName}` : 'Game Rewind'}
-              <span className="ml-3 text-sm font-medium text-slate-500 bg-slate-200 px-2 py-1 rounded">
+            <h1 className="text-3xl font-black text-slate-900 flex items-baseline gap-3">
+              <span>{gameDetails ? `${gameDetails.awayTeam.teamName} vs ${gameDetails.homeTeam.teamName}` : 'Game Rewind'}</span>
+              {gameDetails?.gameEt && (
+                <span className="text-lg text-slate-500 font-bold">
+                  {formatDate(gameDetails.gameEt)}
+                </span>
+              )}
+              <span className="text-sm font-medium text-slate-500 bg-slate-200 px-2 py-1 rounded">
                 ID: {gameId}
               </span>
             </h1>
