@@ -21,6 +21,8 @@ export interface PlayerStats {
   tov: number;
   pf: number;
   plusMinus: number;
+  order?: number;
+  position?: string;
 }
 
 export interface TeamStats {
@@ -94,7 +96,7 @@ export function calculateBoxScore(
 
   const stats: Record<number, TeamStats> = {};
 
-  const getOrCreatePlayer = (teamId: number, personId: number, playerName: string, teamTriplet: string): PlayerStats => {
+  const getOrCreatePlayer = (teamId: number, personId: number, playerName: string, teamTriplet: string, extra?: { order?: number; position?: string }): PlayerStats => {
     if (!stats[teamId]) {
       stats[teamId] = createTeamStats(teamId, teamTriplet);
     }
@@ -122,13 +124,19 @@ export function calculateBoxScore(
         plusMinus: 0,
       };
     }
+    if (extra?.order !== undefined) {
+      stats[teamId].playerStats[personId].order = extra.order;
+    }
+    if (extra?.position !== undefined) {
+      stats[teamId].playerStats[personId].position = extra.position;
+    }
     return stats[teamId].playerStats[personId];
   };
 
   // Initialize with starters if provided
   if (initialPlayers && finalHomeId && finalAwayId) {
-    initialPlayers.home.forEach(p => getOrCreatePlayer(finalHomeId!, p.personId, p.name, ''));
-    initialPlayers.away.forEach(p => getOrCreatePlayer(finalAwayId!, p.personId, p.name, ''));
+    initialPlayers.home.forEach(p => getOrCreatePlayer(finalHomeId!, p.personId, p.name, '', { order: p.order, position: p.position }));
+    initialPlayers.away.forEach(p => getOrCreatePlayer(finalAwayId!, p.personId, p.name, '', { order: p.order, position: p.position }));
   }
 
   actions.forEach((action) => {

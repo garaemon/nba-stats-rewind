@@ -157,4 +157,21 @@ describe('calculateBoxScore', () => {
       expect(result.away.playerStats[3].pf).toBe(1);
     }
   });
+
+  it('preserves order from initialPlayers', () => {
+    const initialPlayers = {
+      home: [
+        { personId: 11, name: 'Starter 1', order: 0 },
+        { personId: 12, name: 'Starter 2', order: 1 }
+      ],
+      away: []
+    };
+
+    const result = calculateBoxScore([], 101, 102, initialPlayers);
+    expect(result).not.toBeNull();
+    if (result) {
+      expect(result.home.playerStats[11].order).toBe(0);
+      expect(result.home.playerStats[12].order).toBe(1);
+    }
+  });
 });
