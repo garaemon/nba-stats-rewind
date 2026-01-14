@@ -95,8 +95,8 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
 
   const boxScore = useMemo(() => {
     const initialPlayers = gameDetails ? {
-      home: gameDetails.homeTeam.players.map((p: any) => ({ personId: p.personId, name: p.name })),
-      away: gameDetails.awayTeam.players.map((p: any) => ({ personId: p.personId, name: p.name })),
+      home: gameDetails.homeTeam.players.map((p: any, i: number) => ({ personId: p.personId, name: p.name, order: i, position: p.position })),
+      away: gameDetails.awayTeam.players.map((p: any, i: number) => ({ personId: p.personId, name: p.name, order: i, position: p.position })),
     } : undefined;
     return calculateBoxScore(visibleActions, homeTeamId, awayTeamId, initialPlayers);
   }, [visibleActions, homeTeamId, awayTeamId, gameDetails]);
@@ -358,7 +358,14 @@ function ComparisonRow({ label, away, home, suffix = '', invert = false }: { lab
 }
 
 function BoxScoreSection({ title, stats }: { title: string; stats: TeamStats }) {
-  const players = Object.values(stats.playerStats).sort((a, b) => b.points - a.points);
+  const players = Object.values(stats.playerStats).sort((a, b) => {
+    if (a.order !== undefined && b.order !== undefined) {
+      return a.order - b.order;
+    }
+    if (a.order !== undefined) return -1;
+    if (b.order !== undefined) return 1;
+    return b.points - a.points;
+  });
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
