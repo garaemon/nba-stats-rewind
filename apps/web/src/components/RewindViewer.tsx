@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { PlayByPlayV3Action } from '@nba-stats-rewind/nba-api-client';
-import { clockToSeconds, getGameTimeSeconds, formatGameTime, formatClock, formatActualTime, parseActualTime, formatDate } from '@/utils/format';
+import { clockToSeconds, getGameTimeSeconds, formatGameTime, formatClock, formatActualTime, parseActualTime } from '@/utils/format';
 import { usePlayback } from '@/hooks/usePlayback';
 import { calculateBoxScore, TeamStats, PlayerStats } from '@/utils/boxScore';
 import { useLiveGame } from '@/hooks/useLiveGame';
