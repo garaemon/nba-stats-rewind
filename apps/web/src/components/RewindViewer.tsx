@@ -87,6 +87,8 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
     return processedActions.filter((action) => action.wallTimeOffset <= currentTime);
   }, [processedActions, currentTime]);
 
+  // Filter actions based on the selected period (or return all visible actions if 'all' is selected).
+  // This allows the box score and comparison to reflect specific quarters.
   const filteredActions = useMemo(() => {
     if (selectedPeriod === 'all') {
       return visibleActions;
