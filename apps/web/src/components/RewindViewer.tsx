@@ -94,6 +94,7 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
   }, [processedActions, currentTime]);
 
   const boxScore = useMemo(() => {
+    // Preserve the order from the API response (usually Starters -> Bench) by capturing the index
     const initialPlayers = gameDetails ? {
       home: gameDetails.homeTeam.players.map((p: any, i: number) => ({ personId: p.personId, name: p.name, order: i, position: p.position })),
       away: gameDetails.awayTeam.players.map((p: any, i: number) => ({ personId: p.personId, name: p.name, order: i, position: p.position })),
@@ -358,12 +359,17 @@ function ComparisonRow({ label, away, home, suffix = '', invert = false }: { lab
 }
 
 function BoxScoreSection({ title, stats }: { title: string; stats: TeamStats }) {
+  // Sort by roster order (Starters first) if available, otherwise by points
   const players = Object.values(stats.playerStats).sort((a, b) => {
     if (a.order !== undefined && b.order !== undefined) {
       return a.order - b.order;
     }
-    if (a.order !== undefined) return -1;
-    if (b.order !== undefined) return 1;
+    if (a.order !== undefined) {
+      return -1;
+    }
+    if (b.order !== undefined) {
+      return 1;
+    }
     return b.points - a.points;
   });
 
