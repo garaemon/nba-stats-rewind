@@ -107,20 +107,6 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
 
   return (
     <div className="space-y-6">
-      {/* Game Date & Arena Information */}
-      {gameDetails?.gameEt && (
-        <div className="text-center">
-            <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">
-               {formatDate(gameDetails.gameEt)}
-            </h2>
-            {gameDetails.arena && (
-                <div className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">
-                    {gameDetails.arena.arenaName} • {gameDetails.arena.arenaCity}, {gameDetails.arena.arenaState}
-                </div>
-            )}
-        </div>
-      )}
-
       {/* Live Status Indicator */}
       {isLive && (
         <div className="flex items-center gap-2 px-3 py-1 bg-red-100 text-red-600 rounded-full w-fit text-xs font-black animate-pulse">
