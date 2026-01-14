@@ -106,6 +106,8 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
 
   // Determine available periods
   const maxPeriod = useMemo(() => {
+    // If we have actions, find the highest period number from them.
+    // Otherwise, default to 4 periods.
     const maxInActions = processedActions.length > 0
       ? Math.max(...processedActions.map(a => a.period))
       : 4;
