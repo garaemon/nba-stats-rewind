@@ -88,10 +88,20 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
   } = usePlayback({ maxTime: totalDuration });
 
   const [activeTab, setActiveTab] = useState<'pbp' | 'boxscore' | 'comparison'>('boxscore');
+  const [selectedPeriod, setSelectedPeriod] = useState<'all' | number>('all');
 
   const visibleActions = useMemo(() => {
     return processedActions.filter((action) => action.wallTimeOffset <= currentTime);
   }, [processedActions, currentTime]);
+
+  // Filter actions based on the selected period (or return all visible actions if 'all' is selected).
+  // This allows the box score and comparison to reflect specific quarters.
+  const filteredActions = useMemo(() => {
+    if (selectedPeriod === 'all') {
+      return visibleActions;
+    }
+    return visibleActions.filter((action) => action.period === selectedPeriod);
+  }, [visibleActions, selectedPeriod]);
 
   const boxScore = useMemo(() => {
     // Preserve the order from the API response (usually Starters -> Bench) by capturing the index
@@ -99,8 +109,18 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
       home: gameDetails.homeTeam.players.map((p: any, i: number) => ({ personId: p.personId, name: p.name, order: i, position: p.position })),
       away: gameDetails.awayTeam.players.map((p: any, i: number) => ({ personId: p.personId, name: p.name, order: i, position: p.position })),
     } : undefined;
-    return calculateBoxScore(visibleActions, homeTeamId, awayTeamId, initialPlayers);
-  }, [visibleActions, homeTeamId, awayTeamId, gameDetails]);
+    return calculateBoxScore(filteredActions, homeTeamId, awayTeamId, initialPlayers);
+  }, [filteredActions, homeTeamId, awayTeamId, gameDetails]);
+
+  // Determine available periods
+  const maxPeriod = useMemo(() => {
+    // If we have actions, find the highest period number from them.
+    // Otherwise, default to 4 periods.
+    const maxInActions = processedActions.length > 0
+      ? Math.max(...processedActions.map(a => a.period))
+      : 4;
+    return Math.max(maxInActions, 4);
+  }, [processedActions]);
 
   // Find the latest game clock to display
   const currentGameClock = useMemo(() => {
@@ -186,32 +206,58 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-2 p-1 bg-slate-200 rounded-xl w-fit">
-        <button
-          onClick={() => setActiveTab('boxscore')}
-          className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${
-            activeTab === 'boxscore' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-          }`}
-        >
-          Box Score
-        </button>
-        <button
-          onClick={() => setActiveTab('pbp')}
-          className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${
-            activeTab === 'pbp' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-          }`}
-        >
-          Play-by-Play
-        </button>
-        <button
-          onClick={() => setActiveTab('comparison')}
-          className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${
-            activeTab === 'comparison' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-          }`}
-        >
-          Team Comparison
-        </button>
+      {/* Period Selection & Tabs */}
+      <div className="flex flex-col gap-4">
+        {/* Period Selector */}
+        <div className="flex gap-1 p-1 bg-slate-100 rounded-lg w-fit overflow-x-auto">
+          <button
+            onClick={() => setSelectedPeriod('all')}
+            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all whitespace-nowrap ${
+              selectedPeriod === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
+            }`}
+          >
+            Full Game
+          </button>
+          {Array.from({ length: maxPeriod }, (_, i) => i + 1).map((period) => (
+            <button
+              key={period}
+              onClick={() => setSelectedPeriod(period)}
+              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all whitespace-nowrap ${
+                selectedPeriod === period ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              {period <= 4 ? `Q${period}` : `OT${period - 4}`}
+            </button>
+          ))}
+        </div>
+
+        {/* View Tabs */}
+        <div className="flex gap-2 p-1 bg-slate-200 rounded-xl w-fit">
+          <button
+            onClick={() => setActiveTab('boxscore')}
+            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${
+              activeTab === 'boxscore' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Box Score
+          </button>
+          <button
+            onClick={() => setActiveTab('pbp')}
+            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${
+              activeTab === 'pbp' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Play-by-Play
+          </button>
+          <button
+            onClick={() => setActiveTab('comparison')}
+            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${
+              activeTab === 'comparison' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Team Comparison
+          </button>
+        </div>
       </div>
 
       {activeTab === 'pbp' ? (
@@ -220,7 +266,7 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
           <div className="p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
             <h2 className="text-xl font-bold text-slate-800">Play-by-Play</h2>
             <span className="text-xs font-black px-3 py-1 bg-slate-900 text-white rounded-full uppercase">
-              {visibleActions.length} / {processedActions.length} Events
+              {filteredActions.length} / {processedActions.length} Events
             </span>
           </div>
           
@@ -235,8 +281,8 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {visibleActions.length > 0 ? (
-                  [...visibleActions].reverse().map((action) => (
+                {filteredActions.length > 0 ? (
+                  [...filteredActions].reverse().map((action) => (
                     <tr key={action.actionNumber} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-4 text-sm font-medium text-slate-600">{action.period}</td>
                       <td className="px-6 py-4 text-sm font-medium text-slate-600">{formatClock(action.clock)}</td>
