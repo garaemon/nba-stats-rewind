@@ -84,6 +84,7 @@ export default async function Home(props: {
             </Link>
             <p className="text-slate-600 font-medium">Relive the action, play by play.</p>
           </div>
+          {/* GitHub Icon (hidden on mobile) */}
           <a
             href="https://github.com/garaemon/nba-stats-rewind"
             target="_blank"
@@ -183,7 +184,6 @@ export default async function Home(props: {
         </div>
 
         <footer className="mt-16 py-8 text-center border-t border-slate-200">
-          {/* Footer content removed, moved GitHub link to header */}
           <p className="text-slate-400 text-sm">NBA Stats Rewind</p>
         </footer>
       </div>
