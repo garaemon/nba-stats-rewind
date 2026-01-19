@@ -14,6 +14,7 @@ test.describe('Box Score Functionality', () => {
 
     // Check for table headers in Box Score
     await expect(page.locator('th').getByText('PTS').first()).toBeVisible();
+    await expect(page.locator('th').getByText('PF').first()).toBeVisible();
     await expect(page.locator('th').getByText('FG%').first()).toBeVisible();
 
     // Switch back to Play-by-Play

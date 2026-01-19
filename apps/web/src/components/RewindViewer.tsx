@@ -435,6 +435,7 @@ function BoxScoreSection({ title, stats }: { title: string; stats: TeamStats }) 
               <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">STL</th>
               <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">BLK</th>
               <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">TO</th>
+              <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">PF</th>
               <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">FG%</th>
               <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">3P%</th>
               <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">FT%</th>
@@ -450,6 +451,7 @@ function BoxScoreSection({ title, stats }: { title: string; stats: TeamStats }) 
                 <td className="px-4 py-3 text-sm font-medium text-slate-600 text-right">{player.stl}</td>
                 <td className="px-4 py-3 text-sm font-medium text-slate-600 text-right">{player.blk}</td>
                 <td className="px-4 py-3 text-sm font-medium text-slate-600 text-right">{player.tov}</td>
+                <td className="px-4 py-3 text-sm font-medium text-slate-600 text-right">{player.pf}</td>
                 <td className="px-4 py-3 text-sm font-medium text-slate-600 text-right">
                   <div className="font-bold">{player.fga > 0 ? ((player.fgm / player.fga) * 100).toFixed(1) : '0.0'}%</div>
                   <div className="text-[10px] text-slate-400">{player.fgm}-{player.fga}</div>
@@ -473,6 +475,7 @@ function BoxScoreSection({ title, stats }: { title: string; stats: TeamStats }) 
               <td className="px-4 py-3 text-sm text-slate-900 text-right">{stats.stl}</td>
               <td className="px-4 py-3 text-sm text-slate-900 text-right">{stats.blk}</td>
               <td className="px-4 py-3 text-sm text-slate-900 text-right">{stats.tov}</td>
+              <td className="px-4 py-3 text-sm text-slate-900 text-right">{stats.pf}</td>
               <td className="px-4 py-3 text-sm text-slate-900 text-right">
                 <div>{stats.fga > 0 ? ((stats.fgm / stats.fga) * 100).toFixed(1) : '0.0'}%</div>
                 <div className="text-[10px] text-slate-500 font-normal">{stats.fgm}-{stats.fga}</div>
