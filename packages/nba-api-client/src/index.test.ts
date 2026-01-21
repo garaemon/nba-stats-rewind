@@ -1,9 +1,15 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { getScoreboard, getPlayByPlayV3 } from './index';
 
 describe('nba-api-client', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn());
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   describe('getScoreboard', () => {
@@ -26,9 +32,18 @@ describe('nba-api-client', () => {
         ],
       };
 
-      (vi.mocked(fetch) as any).mockResolvedValue({
-        ok: true,
-        json: async () => mockResponse,
+      (vi.mocked(fetch) as any).mockImplementation((url: string) => {
+        if (url.includes('scoreboardv2')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockResponse,
+          });
+        }
+        return Promise.resolve({
+          ok: false,
+          status: 404,
+          statusText: 'Not Found',
+        });
       });
 
       const result = await getScoreboard('01/01/2024');

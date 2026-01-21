@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { MomentumGraph } from './MomentumGraph';
 
 describe('MomentumGraph', () => {
@@ -11,11 +11,11 @@ describe('MomentumGraph', () => {
 
   it('renders momentum graph text', () => {
     render(
-      <MomentumGraph 
-        actions={mockActions} 
-        totalDuration={300} 
-        currentTime={60} 
-        onSeek={() => {}} 
+      <MomentumGraph
+        actions={mockActions}
+        totalDuration={300}
+        currentTime={60}
+        onSeek={() => {}}
       />
     );
     expect(screen.getByText(/Momentum Graph/i)).toBeInTheDocument();
@@ -23,19 +23,19 @@ describe('MomentumGraph', () => {
 
   it('renders SVG elements', () => {
     const { container } = render(
-      <MomentumGraph 
-        actions={mockActions} 
-        totalDuration={300} 
-        currentTime={60} 
-        onSeek={() => {}} 
+      <MomentumGraph
+        actions={mockActions}
+        totalDuration={300}
+        currentTime={60}
+        onSeek={() => {}}
       />
     );
     const svg = container.querySelector('svg');
     expect(svg).toBeInTheDocument();
-    
+
     const path = container.querySelector('path');
     expect(path).toBeInTheDocument();
-    
+
     const lines = container.querySelectorAll('line');
     expect(lines.length).toBeGreaterThan(0);
   });

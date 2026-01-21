@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { PlayByPlayV3Action } from '@nba-stats-rewind/nba-api-client';
 import { clockToSeconds, getGameTimeSeconds, formatGameTime, formatClock, formatActualTime, parseActualTime } from '@/utils/format';
 import { usePlayback } from '@/hooks/usePlayback';
-import { calculateBoxScore, TeamStats, PlayerStats } from '@/utils/boxScore';
+import { calculateBoxScore, TeamStats } from '@/utils/boxScore';
 import { useLiveGame } from '@/hooks/useLiveGame';
 import { MomentumGraph } from './MomentumGraph';
 import { PlaybackControls } from './PlaybackControls';
@@ -45,7 +45,7 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
     });
     const start = parseActualTime(sorted[0].timeActual);
     const end = parseActualTime(sorted[sorted.length - 1].timeActual);
-    
+
     // Use gameDetails if available, otherwise fallback to inference
     let hId = gameDetails?.homeTeam?.teamId || 0;
     let aId = gameDetails?.awayTeam?.teamId || 0;
@@ -153,7 +153,7 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
               {currentGameClock}
             </span>
           </div>
-          
+
           <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex flex-col items-center justify-center">
             <span className="text-xs font-black text-blue-400 uppercase tracking-widest mb-1">Actual Time</span>
             <span className="text-2xl font-black text-blue-900" data-testid="current-actual-time">
@@ -186,11 +186,11 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
         </div>
 
         <div className="flex flex-col gap-6">
-          <MomentumGraph 
-            actions={processedActions} 
-            totalDuration={totalDuration} 
-            currentTime={currentTime} 
-            onSeek={seek} 
+          <MomentumGraph
+            actions={processedActions}
+            totalDuration={totalDuration}
+            currentTime={currentTime}
+            onSeek={seek}
           />
 
           <PlaybackControls
@@ -269,7 +269,7 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
               {filteredActions.length} / {processedActions.length} Events
             </span>
           </div>
-          
+
           <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
             <table className="w-full text-left border-collapse">
               <thead className="sticky top-0 z-10">
@@ -313,13 +313,13 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
         <div className="space-y-8">
           {boxScore ? (
             <>
-              <BoxScoreSection 
-                title={gameDetails?.awayTeam ? `${gameDetails.awayTeam.teamCity} ${gameDetails.awayTeam.teamName}` : `AWAY: ${boxScore.away.teamTriplet}`} 
-                stats={boxScore.away} 
+              <BoxScoreSection
+                title={gameDetails?.awayTeam ? `${gameDetails.awayTeam.teamCity} ${gameDetails.awayTeam.teamName}` : `AWAY: ${boxScore.away.teamTriplet}`}
+                stats={boxScore.away}
               />
-              <BoxScoreSection 
-                title={gameDetails?.homeTeam ? `${gameDetails.homeTeam.teamCity} ${gameDetails.homeTeam.teamName}` : `HOME: ${boxScore.home.teamTriplet}`} 
-                stats={boxScore.home} 
+              <BoxScoreSection
+                title={gameDetails?.homeTeam ? `${gameDetails.homeTeam.teamCity} ${gameDetails.homeTeam.teamName}` : `HOME: ${boxScore.home.teamTriplet}`}
+                stats={boxScore.home}
               />
             </>
           ) : (
@@ -342,18 +342,18 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
                   <span className="text-[10px]">Stat</span>
                   <span>{gameDetails?.homeTeam?.teamTricode || 'HOME'}</span>
                 </div>
-                
+
                 <ComparisonRow label="Points" away={boxScore.away.points} home={boxScore.home.points} />
-                <ComparisonRow 
-                  label="Field Goal %" 
-                  away={boxScore.away.fga > 0 ? (boxScore.away.fgm / boxScore.away.fga * 100).toFixed(1) : '0.0'} 
-                  home={boxScore.home.fga > 0 ? (boxScore.home.fgm / boxScore.home.fga * 100).toFixed(1) : '0.0'} 
+                <ComparisonRow
+                  label="Field Goal %"
+                  away={boxScore.away.fga > 0 ? (boxScore.away.fgm / boxScore.away.fga * 100).toFixed(1) : '0.0'}
+                  home={boxScore.home.fga > 0 ? (boxScore.home.fgm / boxScore.home.fga * 100).toFixed(1) : '0.0'}
                   suffix="%"
                 />
-                <ComparisonRow 
-                  label="3-Point %" 
-                  away={boxScore.away.fg3a > 0 ? (boxScore.away.fg3m / boxScore.away.fg3a * 100).toFixed(1) : '0.0'} 
-                  home={boxScore.home.fg3a > 0 ? (boxScore.home.fg3m / boxScore.home.fg3a * 100).toFixed(1) : '0.0'} 
+                <ComparisonRow
+                  label="3-Point %"
+                  away={boxScore.away.fg3a > 0 ? (boxScore.away.fg3m / boxScore.away.fg3a * 100).toFixed(1) : '0.0'}
+                  home={boxScore.home.fg3a > 0 ? (boxScore.home.fg3m / boxScore.home.fg3a * 100).toFixed(1) : '0.0'}
                   suffix="%"
                 />
                 <ComparisonRow label="Rebounds" away={boxScore.away.reb} home={boxScore.home.reb} />
@@ -375,7 +375,7 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
 function ComparisonRow({ label, away, home, suffix = '', invert = false }: { label: string; away: string | number; home: string | number; suffix?: string; invert?: boolean }) {
   const awayNum = parseFloat(away.toString());
   const homeNum = parseFloat(home.toString());
-  
+
   const awayIsLeading = invert ? awayNum < homeNum : awayNum > homeNum;
   const homeIsLeading = invert ? homeNum < awayNum : homeNum > awayNum;
 
@@ -387,12 +387,12 @@ function ComparisonRow({ label, away, home, suffix = '', invert = false }: { lab
       <div className="text-center">
         <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{label}</div>
         <div className="flex h-1.5 bg-slate-100 rounded-full overflow-hidden">
-          <div 
-            className={`h-full transition-all duration-500 ${awayIsLeading ? 'bg-blue-600' : 'bg-slate-300'}`} 
+          <div
+            className={`h-full transition-all duration-500 ${awayIsLeading ? 'bg-blue-600' : 'bg-slate-300'}`}
             style={{ width: `${(awayNum / (awayNum + homeNum || 1)) * 100}%` }}
           />
-          <div 
-            className={`h-full transition-all duration-500 ${homeIsLeading ? 'bg-blue-600' : 'bg-slate-300'}`} 
+          <div
+            className={`h-full transition-all duration-500 ${homeIsLeading ? 'bg-blue-600' : 'bg-slate-300'}`}
             style={{ width: `${(homeNum / (awayNum + homeNum || 1)) * 100}%` }}
           />
         </div>
@@ -495,4 +495,3 @@ function BoxScoreSection({ title, stats }: { title: string; stats: TeamStats }) 
     </div>
   );
 }
-
