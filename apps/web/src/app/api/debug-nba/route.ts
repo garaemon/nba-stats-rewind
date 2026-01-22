@@ -30,10 +30,10 @@ export async function GET() {
     results.cdn.statusText = cdnRes.statusText;
     const resHeaders: Record<string, string> = {};
     cdnRes.headers.forEach((v, k) => {
-      resHeaders[k] = v; 
+      resHeaders[k] = v;
     });
     results.cdn.headers = resHeaders;
-    
+
     if (cdnRes.ok) {
       const json = await cdnRes.json();
       results.cdn.dataPreview = {
@@ -67,7 +67,7 @@ export async function GET() {
     results.stats.statusText = statsRes.statusText;
     const resHeaders: Record<string, string> = {};
     statsRes.headers.forEach((v, k) => {
-      resHeaders[k] = v; 
+      resHeaders[k] = v;
     });
     results.stats.headers = resHeaders;
   } catch (e: any) {
@@ -83,20 +83,18 @@ export async function GET() {
   // 3. Simulate getScoreboard Logic (Logic inside nba-api-client)
   const startFallback = performance.now();
   try {
-    // Trying to fetch a specific date (today) via CDN as the client does
-    const today = new Date();
-    // Format today as YYYY-MM-DD for checking against API response if needed, 
+    // Format today as YYYY-MM-DD for checking against API response if needed,
     // but here we just test the specific URL structure used in client
     const url = `https://cdn.nba.com/static/json/liveData/scoreboard/todaysScoreboard_00.json`;
-      
-    const response = await fetch(url, { 
-      headers: { ...headers }, 
-      cache: 'no-store' 
+
+    const response = await fetch(url, {
+      headers: { ...headers },
+      cache: 'no-store'
     });
 
     results.scoreboard_fallback.status = response.status;
     results.scoreboard_fallback.statusText = response.statusText;
-      
+
     if (response.ok) {
       const data = await response.json();
       results.scoreboard_fallback.dataPreview = {
