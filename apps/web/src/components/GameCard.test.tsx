@@ -11,6 +11,10 @@ vi.mock('next/link', () => {
   };
 });
 
+vi.mock('@/utils/team', () => ({
+  getTeamLogoUrl: (id: number) => `https://cdn.nba.com/logos/nba/${id}/global/L/logo.svg`
+}));
+
 describe('GameCard', () => {
   const mockGame = {
     gameId: '0022300001',
@@ -26,11 +30,15 @@ describe('GameCard', () => {
 
   it('renders team names and initial state', () => {
     render(<GameCard game={mockGame} />);
-    
+
     expect(screen.getByText('Los Angeles Lakers')).toBeInTheDocument();
     expect(screen.getByText('Golden State Warriors')).toBeInTheDocument();
     expect(screen.getByText('Final')).toBeInTheDocument();
-    
+
+    // Check for logos
+    expect(screen.getByAltText('Los Angeles Lakers logo')).toBeInTheDocument();
+    expect(screen.getByAltText('Golden State Warriors logo')).toBeInTheDocument();
+
     const homeScore = screen.getByTestId('home-score');
     expect(homeScore).toHaveClass('blur-md');
   });
@@ -48,14 +56,14 @@ describe('GameCard', () => {
 
   it('toggles score visibility when clicking the button', () => {
     render(<GameCard game={mockGame} />);
-    
+
     const button = screen.getByRole('button', { name: 'Show Score' });
     fireEvent.click(button);
-    
+
     expect(screen.getByText('Visible')).toBeInTheDocument();
     const homeScore = screen.getByTestId('home-score');
     expect(homeScore).not.toHaveClass('blur-md');
-    
+
     fireEvent.click(screen.getByRole('button', { name: 'Hide Score' }));
     expect(homeScore).toHaveClass('blur-md');
   });
