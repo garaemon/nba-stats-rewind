@@ -1,7 +1,9 @@
 import { getPlayByPlayV3, getBoxScoreV3, PlayByPlayV3Action } from '@nba-stats-rewind/nba-api-client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { RewindViewer } from '@/components/RewindViewer';
 import { formatDate } from '@/utils/format';
+import { getTeamLogoUrl } from '@/utils/team';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -11,7 +13,7 @@ export default async function GameRewindPage(props: {
 }) {
   const params = await props.params;
   const gameId = params.id;
-  
+
   let actions: PlayByPlayV3Action[] = [];
   let gameDetails: any = null;
   let errorMsg = '';
@@ -36,17 +38,45 @@ export default async function GameRewindPage(props: {
         <header className="mb-8 flex items-center justify-between">
           <div>
             <Link href="/" className="text-blue-600 hover:text-blue-800 font-bold flex items-center gap-2 mb-2 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
               Back to Scoreboard
             </Link>
-            <h1 className="text-3xl font-black text-slate-900 flex items-baseline gap-3">
-              <span>{gameDetails ? `${gameDetails.awayTeam.teamName} vs ${gameDetails.homeTeam.teamName}` : 'Game Rewind'}</span>
+            <h1 className="text-3xl font-black text-slate-900 flex items-center gap-4 flex-wrap">
+              {gameDetails ? (
+                <>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 relative flex-shrink-0">
+                      <Image
+                        src={getTeamLogoUrl(gameDetails.awayTeam.teamId)}
+                        alt={`${gameDetails.awayTeam.teamName} logo`}
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                    <span>{gameDetails.awayTeam.teamName}</span>
+                  </div>
+                  <span className="text-slate-400">vs</span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 relative flex-shrink-0">
+                      <Image
+                        src={getTeamLogoUrl(gameDetails.homeTeam.teamId)}
+                        alt={`${gameDetails.homeTeam.teamName} logo`}
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                    <span>{gameDetails.homeTeam.teamName}</span>
+                  </div>
+                </>
+              ) : (
+                <span>Game Rewind</span>
+              )}
               {gameDetails?.gameEt && (
-                <span className="text-lg text-slate-500 font-bold">
+                <span className="text-lg text-slate-500 font-bold ml-2">
                   {formatDate(gameDetails.gameEt)}
                 </span>
               )}
-              <span className="text-sm font-medium text-slate-500 bg-slate-200 px-2 py-1 rounded">
+              <span className="text-sm font-medium text-slate-500 bg-slate-200 px-2 py-1 rounded ml-2">
                 ID: {gameId}
               </span>
             </h1>
@@ -59,10 +89,10 @@ export default async function GameRewindPage(props: {
           </div>
         )}
 
-        <RewindViewer 
-          gameId={gameId} 
-          actions={actions} 
-          initialData={gameDetails} 
+        <RewindViewer
+          gameId={gameId}
+          actions={actions}
+          initialData={gameDetails}
           isLiveInitial={gameDetails?.gameStatus === 2}
         />
       </div>

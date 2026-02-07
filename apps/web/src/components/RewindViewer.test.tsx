@@ -5,9 +5,9 @@ import { PlayByPlayV3Action } from '@nba-stats-rewind/nba-api-client';
 
 // Mock hooks
 vi.mock('@/hooks/useLiveGame', () => ({
-  useLiveGame: ({ initialActions }: any) => ({
+  useLiveGame: ({ initialActions, initialBoxScore }: any) => ({
     actions: initialActions,
-    boxScore: null,
+    boxScore: initialBoxScore,
     isLive: false,
     lastUpdated: null,
   }),
@@ -94,7 +94,7 @@ describe('RewindViewer Sorting', () => {
 
   it('sorts actions by time (period/clock) correctly, not just actionNumber', () => {
     render(<RewindViewer gameId="test" actions={mockActions} />);
-    
+
     // Switch to PBP tab
     const pbpTab = screen.getByText('Play-by-Play');
     fireEvent.click(pbpTab);
@@ -104,7 +104,7 @@ describe('RewindViewer Sorting', () => {
     // 1. 618 (5:20)
     // 2. 669 (5:19)
     // 3. 621 (5:18)
-    
+
     // Table (Reverse):
     // 1. 621 (5:18) - Rebound
     // 2. 669 (5:19) - Block
@@ -124,5 +124,45 @@ describe('RewindViewer Sorting', () => {
 
     expect(thirdRow).toHaveTextContent('5:20'); // Layup Miss
     expect(thirdRow).toHaveTextContent('Layup Miss');
+  });
+});
+
+describe('RewindViewer Logo Display', () => {
+  it('renders team logos when boxScore is available', () => {
+    const mockBoxScore = {
+      homeTeam: { teamId: 1610612747, teamName: 'Lakers', teamTricode: 'LAL', players: [] },
+      awayTeam: { teamId: 1610612737, teamName: 'Hawks', teamTricode: 'ATL', players: [] },
+    };
+    const mockActions: any[] = [{
+      actionNumber: 1,
+      clock: 'PT12M00.00S',
+      timeActual: '2024-01-01T00:00:00Z',
+      period: 1,
+      scoreHome: '0',
+      scoreAway: '0',
+      teamId: 0,
+    }];
+    render(<RewindViewer gameId="test" actions={mockActions} initialData={mockBoxScore} />);
+
+    const hawksLogo = screen.getByAltText('Hawks logo');
+    const lakersLogo = screen.getByAltText('Lakers logo');
+
+    expect(hawksLogo).toBeDefined();
+    expect(lakersLogo).toBeDefined();
+
+    // Check if src contains teamId (using find by name/selector as next/image might transform src)
+    expect(hawksLogo.getAttribute('src')).toContain('1610612737');
+    expect(lakersLogo.getAttribute('src')).toContain('1610612747');
+  });
+
+  it('does not render team logos when teamId is 0', () => {
+    const mockBoxScore = {
+      homeTeam: { teamId: 0, teamName: 'Lakers', teamTricode: 'LAL', players: [] },
+      awayTeam: { teamId: 0, teamName: 'Hawks', teamTricode: 'ATL', players: [] },
+    };
+    render(<RewindViewer gameId="test" actions={[]} initialData={mockBoxScore} />);
+
+    expect(screen.queryByAltText('Hawks logo')).toBeNull();
+    expect(screen.queryByAltText('Lakers logo')).toBeNull();
   });
 });
