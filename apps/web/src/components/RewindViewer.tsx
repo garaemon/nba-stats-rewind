@@ -8,6 +8,8 @@ import { calculateBoxScore, TeamStats } from '@/utils/boxScore';
 import { useLiveGame } from '@/hooks/useLiveGame';
 import { MomentumGraph } from './MomentumGraph';
 import { PlaybackControls } from './PlaybackControls';
+import Image from 'next/image';
+import { getTeamLogoUrl } from '@/utils/team';
 
 interface RewindViewerProps {
   gameId: string;
@@ -163,23 +165,49 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
 
           <div className="bg-slate-900 p-4 rounded-xl flex flex-col items-center justify-center text-center">
             <span className="text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Score</span>
-            <div className="flex items-center gap-4">
-              <div className="flex flex-col">
-                <span className="text-[10px] font-black text-slate-400 uppercase leading-none mb-1">
-                  {gameDetails?.awayTeam?.teamTricode || 'AWAY'}
-                </span>
-                <span className="text-2xl font-black text-white">
-                  {visibleActions[visibleActions.length - 1]?.scoreAway || 0}
-                </span>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-3">
+                {awayTeamId !== 0 && (
+                  <div className="w-10 h-10 relative flex-shrink-0">
+                    <Image
+                      src={getTeamLogoUrl(awayTeamId)}
+                      alt={`${gameDetails?.awayTeam?.teamName || 'Away'} logo`}
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                )}
+                <div className="flex flex-col text-left">
+                  <span className="text-[10px] font-black text-slate-400 uppercase leading-none mb-1">
+                    {gameDetails?.awayTeam?.teamTricode || 'AWAY'}
+                  </span>
+                  <span className="text-2xl font-black text-white">
+                    {visibleActions[visibleActions.length - 1]?.scoreAway || 0}
+                  </span>
+                </div>
               </div>
-              <span className="text-slate-600 font-black">-</span>
-              <div className="flex flex-col">
-                <span className="text-[10px] font-black text-slate-400 uppercase leading-none mb-1">
-                  {gameDetails?.homeTeam?.teamTricode || 'HOME'}
-                </span>
-                <span className="text-2xl font-black text-white">
-                  {visibleActions[visibleActions.length - 1]?.scoreHome || 0}
-                </span>
+
+              <span className="text-slate-600 font-black text-xl">-</span>
+
+              <div className="flex items-center gap-3">
+                <div className="flex flex-col text-right">
+                  <span className="text-[10px] font-black text-slate-400 uppercase leading-none mb-1">
+                    {gameDetails?.homeTeam?.teamTricode || 'HOME'}
+                  </span>
+                  <span className="text-2xl font-black text-white">
+                    {visibleActions[visibleActions.length - 1]?.scoreHome || 0}
+                  </span>
+                </div>
+                {homeTeamId !== 0 && (
+                  <div className="w-10 h-10 relative flex-shrink-0">
+                    <Image
+                      src={getTeamLogoUrl(homeTeamId)}
+                      alt={`${gameDetails?.homeTeam?.teamName || 'Home'} logo`}
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -212,8 +240,7 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
         <div className="flex gap-1 p-1 bg-slate-100 rounded-lg w-fit overflow-x-auto">
           <button
             onClick={() => setSelectedPeriod('all')}
-            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all whitespace-nowrap ${
-              selectedPeriod === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
+            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all whitespace-nowrap ${selectedPeriod === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
             }`}
           >
             Full Game
@@ -222,8 +249,7 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
             <button
               key={period}
               onClick={() => setSelectedPeriod(period)}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all whitespace-nowrap ${
-                selectedPeriod === period ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
+              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all whitespace-nowrap ${selectedPeriod === period ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
               }`}
             >
               {period <= 4 ? `Q${period}` : `OT${period - 4}`}
@@ -235,24 +261,21 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
         <div className="flex gap-2 p-1 bg-slate-200 rounded-xl w-fit">
           <button
             onClick={() => setActiveTab('boxscore')}
-            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${
-              activeTab === 'boxscore' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'boxscore' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             Box Score
           </button>
           <button
             onClick={() => setActiveTab('pbp')}
-            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${
-              activeTab === 'pbp' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'pbp' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             Play-by-Play
           </button>
           <button
             onClick={() => setActiveTab('comparison')}
-            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${
-              activeTab === 'comparison' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'comparison' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             Team Comparison
