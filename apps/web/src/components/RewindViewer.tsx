@@ -10,6 +10,8 @@ import { MomentumGraph } from './MomentumGraph';
 import { PlaybackControls } from './PlaybackControls';
 import Image from 'next/image';
 import { getTeamLogoUrl } from '@/utils/team';
+import { getPlayerImageUrl, getPlayerStatsUrl } from '@/utils/player';
+import Link from 'next/link';
 
 interface RewindViewerProps {
   gameId: string;
@@ -241,7 +243,7 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
           <button
             onClick={() => setSelectedPeriod('all')}
             className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all whitespace-nowrap ${selectedPeriod === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
-            }`}
+              }`}
           >
             Full Game
           </button>
@@ -250,7 +252,7 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
               key={period}
               onClick={() => setSelectedPeriod(period)}
               className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all whitespace-nowrap ${selectedPeriod === period ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
-              }`}
+                }`}
             >
               {period <= 4 ? `Q${period}` : `OT${period - 4}`}
             </button>
@@ -262,21 +264,21 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
           <button
             onClick={() => setActiveTab('boxscore')}
             className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'boxscore' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-            }`}
+              }`}
           >
             Box Score
           </button>
           <button
             onClick={() => setActiveTab('pbp')}
             className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'pbp' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-            }`}
+              }`}
           >
             Play-by-Play
           </button>
           <button
             onClick={() => setActiveTab('comparison')}
             className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'comparison' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-            }`}
+              }`}
           >
             Team Comparison
           </button>
@@ -467,7 +469,26 @@ function BoxScoreSection({ title, stats }: { title: string; stats: TeamStats }) 
           <tbody className="divide-y divide-slate-100">
             {players.map((player) => (
               <tr key={player.personId} className="hover:bg-slate-50 transition-colors">
-                <td className="px-4 py-3 text-sm font-bold text-slate-900 sticky left-0 bg-white group-hover:bg-slate-50">{player.playerName}</td>
+                <td className="px-4 py-3 text-sm font-bold text-slate-900 sticky left-0 bg-white group-hover:bg-slate-50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 relative flex-shrink-0 rounded-full overflow-hidden bg-slate-100 border border-slate-200">
+                      <Image
+                        src={getPlayerImageUrl(player.personId)}
+                        alt={`${player.playerName} headshot`}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <Link
+                      href={getPlayerStatsUrl(player.personId)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-blue-600 hover:underline transition-colors"
+                    >
+                      {player.playerName}
+                    </Link>
+                  </div>
+                </td>
                 <td className="px-4 py-3 text-sm font-black text-slate-900 text-right">{player.points}</td>
                 <td className="px-4 py-3 text-sm font-medium text-slate-600 text-right">{player.reb}</td>
                 <td className="px-4 py-3 text-sm font-medium text-slate-600 text-right">{player.ast}</td>
