@@ -10,6 +10,8 @@ import { MomentumGraph } from './MomentumGraph';
 import { PlaybackControls } from './PlaybackControls';
 import Image from 'next/image';
 import { getTeamLogoUrl } from '@/utils/team';
+import { getPlayerImageUrl, getPlayerStatsUrl } from '@/utils/player';
+import Link from 'next/link';
 
 interface RewindViewerProps {
   gameId: string;
@@ -467,7 +469,26 @@ function BoxScoreSection({ title, stats }: { title: string; stats: TeamStats }) 
           <tbody className="divide-y divide-slate-100">
             {players.map((player) => (
               <tr key={player.personId} className="hover:bg-slate-50 transition-colors">
-                <td className="px-4 py-3 text-sm font-bold text-slate-900 sticky left-0 bg-white group-hover:bg-slate-50">{player.playerName}</td>
+                <td className="px-4 py-3 text-sm font-bold text-slate-900 sticky left-0 bg-white group-hover:bg-slate-50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 relative flex-shrink-0 rounded-full overflow-hidden bg-slate-100 border border-slate-200">
+                      <Image
+                        src={getPlayerImageUrl(player.personId)}
+                        alt={`${player.playerName} headshot`}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <Link
+                      href={getPlayerStatsUrl(player.personId)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-blue-600 hover:underline transition-colors"
+                    >
+                      {player.playerName}
+                    </Link>
+                  </div>
+                </td>
                 <td className="px-4 py-3 text-sm font-black text-slate-900 text-right">{player.points}</td>
                 <td className="px-4 py-3 text-sm font-medium text-slate-600 text-right">{player.reb}</td>
                 <td className="px-4 py-3 text-sm font-medium text-slate-600 text-right">{player.ast}</td>
