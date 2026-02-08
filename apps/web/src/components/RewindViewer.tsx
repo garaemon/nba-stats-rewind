@@ -243,7 +243,7 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
           <button
             onClick={() => setSelectedPeriod('all')}
             className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all whitespace-nowrap ${selectedPeriod === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
-              }`}
+            }`}
           >
             Full Game
           </button>
@@ -252,7 +252,7 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
               key={period}
               onClick={() => setSelectedPeriod(period)}
               className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all whitespace-nowrap ${selectedPeriod === period ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
-                }`}
+              }`}
             >
               {period <= 4 ? `Q${period}` : `OT${period - 4}`}
             </button>
@@ -264,21 +264,21 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
           <button
             onClick={() => setActiveTab('boxscore')}
             className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'boxscore' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-              }`}
+            }`}
           >
             Box Score
           </button>
           <button
             onClick={() => setActiveTab('pbp')}
             className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'pbp' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-              }`}
+            }`}
           >
             Play-by-Play
           </button>
           <button
             onClick={() => setActiveTab('comparison')}
             className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'comparison' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-              }`}
+            }`}
           >
             Team Comparison
           </button>
