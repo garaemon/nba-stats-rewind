@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { PlayByPlayV3Action } from '@nba-stats-rewind/nba-api-client';
 import { clockToSeconds, getGameTimeSeconds, formatGameTime, formatClock, formatActualTime, parseActualTime } from '@/utils/format';
 import { usePlayback } from '@/hooks/usePlayback';
-import { calculateBoxScore, TeamStats } from '@/utils/boxScore';
+import { calculateBoxScore, BoxScore, TeamStats, PlayerStats } from '@/utils/boxScore';
 import { useLiveGame } from '@/hooks/useLiveGame';
 import { MomentumGraph } from './MomentumGraph';
 import { PlaybackControls } from './PlaybackControls';
@@ -107,14 +107,17 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
     return visibleActions.filter((action) => action.period === selectedPeriod);
   }, [visibleActions, selectedPeriod]);
 
-  const boxScore = useMemo(() => {
-    // Preserve the order from the API response (usually Starters -> Bench) by capturing the index
-    const initialPlayers = gameDetails ? {
+  // Preserve the order from the API response (usually Starters -> Bench) by capturing the index
+  const initialPlayers = useMemo(() => {
+    return gameDetails ? {
       home: gameDetails.homeTeam.players.map((p: any, i: number) => ({ personId: p.personId, name: p.name, order: i, position: p.position })),
       away: gameDetails.awayTeam.players.map((p: any, i: number) => ({ personId: p.personId, name: p.name, order: i, position: p.position })),
     } : undefined;
+  }, [gameDetails]);
+
+  const boxScore = useMemo(() => {
     return calculateBoxScore(filteredActions, homeTeamId, awayTeamId, initialPlayers);
-  }, [filteredActions, homeTeamId, awayTeamId, gameDetails]);
+  }, [filteredActions, homeTeamId, awayTeamId, initialPlayers]);
 
   // Determine available periods
   const maxPeriod = useMemo(() => {
@@ -125,6 +128,15 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
       : 4;
     return Math.max(maxInActions, 4);
   }, [processedActions]);
+
+  const quarterBoxScores = useMemo(() => {
+    const result: Record<number, BoxScore | null> = {};
+    for (let period = 1; period <= maxPeriod; period++) {
+      const periodActions = visibleActions.filter(a => a.period === period);
+      result[period] = calculateBoxScore(periodActions, homeTeamId, awayTeamId, initialPlayers);
+    }
+    return result;
+  }, [visibleActions, maxPeriod, homeTeamId, awayTeamId, initialPlayers]);
 
   // Find the latest game clock to display
   const currentGameClock = useMemo(() => {
@@ -341,10 +353,14 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
               <BoxScoreSection
                 title={gameDetails?.awayTeam ? `${gameDetails.awayTeam.teamCity} ${gameDetails.awayTeam.teamName}` : `AWAY: ${boxScore.away.teamTriplet}`}
                 stats={boxScore.away}
+                quarterStats={extractQuarterTeamStats(quarterBoxScores, 'away', maxPeriod)}
+                maxPeriod={maxPeriod}
               />
               <BoxScoreSection
                 title={gameDetails?.homeTeam ? `${gameDetails.homeTeam.teamCity} ${gameDetails.homeTeam.teamName}` : `HOME: ${boxScore.home.teamTriplet}`}
                 stats={boxScore.home}
+                quarterStats={extractQuarterTeamStats(quarterBoxScores, 'home', maxPeriod)}
+                maxPeriod={maxPeriod}
               />
             </>
           ) : (
@@ -397,6 +413,22 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
   );
 }
 
+function extractQuarterTeamStats(
+  quarterBoxScores: Record<number, BoxScore | null>,
+  side: 'home' | 'away',
+  maxPeriod: number,
+): Record<number, TeamStats | null> {
+  const result: Record<number, TeamStats | null> = {};
+  for (let period = 1; period <= maxPeriod; period++) {
+    result[period] = quarterBoxScores[period]?.[side] ?? null;
+  }
+  return result;
+}
+
+function formatPeriodLabel(period: number): string {
+  return period <= 4 ? `Q${period}` : `OT${period - 4}`;
+}
+
 function ComparisonRow({ label, away, home, suffix = '', invert = false }: { label: string; away: string | number; home: string | number; suffix?: string; invert?: boolean }) {
   const awayNum = parseFloat(away.toString());
   const homeNum = parseFloat(home.toString());
@@ -429,8 +461,88 @@ function ComparisonRow({ label, away, home, suffix = '', invert = false }: { lab
   );
 }
 
-function BoxScoreSection({ title, stats }: { title: string; stats: TeamStats }) {
-  // Sort by roster order (Starters first) if available, otherwise by points
+interface StatFields {
+  points: number;
+  reb: number;
+  ast: number;
+  stl: number;
+  blk: number;
+  tov: number;
+  pf: number;
+  fgm: number;
+  fga: number;
+  fg3m: number;
+  fg3a: number;
+  ftm: number;
+  fta: number;
+}
+
+function renderStatCells(s: StatFields, variant: 'player' | 'detail' | 'total' | 'total-detail') {
+  const isDetail = variant === 'detail' || variant === 'total-detail';
+  const isTotal = variant === 'total' || variant === 'total-detail';
+  const py = isDetail ? 'py-1' : 'py-3';
+  const textSize = isDetail ? 'text-xs' : 'text-sm';
+  const ptsColor = isDetail ? 'text-slate-400 font-semibold' : (isTotal ? 'font-black text-slate-900' : 'font-black text-slate-900');
+  const statColor = isDetail ? 'text-slate-400' : (isTotal ? 'text-slate-900' : 'font-medium text-slate-600');
+  const pctSubColor = isDetail ? 'text-slate-300' : (isTotal ? 'text-slate-500 font-normal' : 'text-slate-400');
+
+  return (
+    <>
+      <td className={`px-4 ${py} ${textSize} ${ptsColor} text-right`}>{s.points}</td>
+      <td className={`px-4 ${py} ${textSize} ${statColor} text-right`}>{s.reb}</td>
+      <td className={`px-4 ${py} ${textSize} ${statColor} text-right`}>{s.ast}</td>
+      <td className={`px-4 ${py} ${textSize} ${statColor} text-right`}>{s.stl}</td>
+      <td className={`px-4 ${py} ${textSize} ${statColor} text-right`}>{s.blk}</td>
+      <td className={`px-4 ${py} ${textSize} ${statColor} text-right`}>{s.tov}</td>
+      <td className={`px-4 ${py} ${textSize} ${statColor} text-right`}>{s.pf}</td>
+      <td className={`px-4 ${py} ${textSize} ${statColor} text-right`}>
+        <div className={isDetail ? '' : 'font-bold'}>{s.fga > 0 ? ((s.fgm / s.fga) * 100).toFixed(1) : '0.0'}%</div>
+        <div className={`text-[10px] ${pctSubColor}`}>{s.fgm}-{s.fga}</div>
+      </td>
+      <td className={`px-4 ${py} ${textSize} ${statColor} text-right`}>
+        <div className={isDetail ? '' : 'font-bold'}>{s.fg3a > 0 ? ((s.fg3m / s.fg3a) * 100).toFixed(1) : '0.0'}%</div>
+        <div className={`text-[10px] ${pctSubColor}`}>{s.fg3m}-{s.fg3a}</div>
+      </td>
+      <td className={`px-4 ${py} ${textSize} ${statColor} text-right`}>
+        <div className={isDetail ? '' : 'font-bold'}>{s.fta > 0 ? ((s.ftm / s.fta) * 100).toFixed(1) : '0.0'}%</div>
+        <div className={`text-[10px] ${pctSubColor}`}>{s.ftm}-{s.fta}</div>
+      </td>
+    </>
+  );
+}
+
+function renderQuarterDetailRows(
+  personId: number,
+  quarterStats: Record<number, TeamStats | null>,
+  maxPeriod: number,
+) {
+  return Array.from({ length: maxPeriod }, (_, i) => i + 1).map((period) => {
+    const periodTeam = quarterStats[period];
+    const periodPlayer = periodTeam?.playerStats[personId];
+    if (!periodPlayer) {
+      return null;
+    }
+    return (
+      <tr key={`${personId}-q${period}`} className="bg-slate-50/50">
+        <td className="px-4 py-1 text-xs text-slate-400 sticky left-0 bg-slate-50/50">
+          <span className="ml-11">{formatPeriodLabel(period)}</span>
+        </td>
+        {renderStatCells(periodPlayer, 'detail')}
+      </tr>
+    );
+  });
+}
+
+interface BoxScoreSectionProps {
+  title: string;
+  stats: TeamStats;
+  quarterStats: Record<number, TeamStats | null>;
+  maxPeriod: number;
+}
+
+function BoxScoreSection({ title, stats, quarterStats, maxPeriod }: BoxScoreSectionProps) {
+  const [showDetail, setShowDetail] = useState(false);
+
   const players = Object.values(stats.playerStats).sort((a, b) => {
     if (a.order !== undefined && b.order !== undefined) {
       return a.order - b.order;
@@ -446,96 +558,130 @@ function BoxScoreSection({ title, stats }: { title: string; stats: TeamStats }) 
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-      <div className="p-6 border-b border-slate-100 bg-slate-50">
+      <div className="p-6 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">{title}</h2>
+        <button
+          onClick={() => setShowDetail(prev => !prev)}
+          className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+            showDetail ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 border border-slate-200 hover:text-slate-900'
+          }`}
+        >
+          Detail
+        </button>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
-              <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider sticky left-0 bg-slate-50">Player</th>
-              <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">PTS</th>
-              <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">REB</th>
-              <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">AST</th>
-              <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">STL</th>
-              <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">BLK</th>
-              <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">TO</th>
-              <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">PF</th>
-              <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">FG%</th>
-              <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">3P%</th>
-              <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">FT%</th>
-            </tr>
-          </thead>
+          <BoxScoreHeader />
           <tbody className="divide-y divide-slate-100">
             {players.map((player) => (
-              <tr key={player.personId} className="hover:bg-slate-50 transition-colors">
-                <td className="px-4 py-3 text-sm font-bold text-slate-900 sticky left-0 bg-white group-hover:bg-slate-50">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 relative flex-shrink-0 rounded-full overflow-hidden bg-slate-100 border border-slate-200">
-                      <Image
-                        src={getPlayerImageUrl(player.personId)}
-                        alt={`${player.playerName} headshot`}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <Link
-                      href={getPlayerStatsUrl(player.personId)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-blue-600 hover:underline transition-colors"
-                    >
-                      {player.playerName}
-                    </Link>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-sm font-black text-slate-900 text-right">{player.points}</td>
-                <td className="px-4 py-3 text-sm font-medium text-slate-600 text-right">{player.reb}</td>
-                <td className="px-4 py-3 text-sm font-medium text-slate-600 text-right">{player.ast}</td>
-                <td className="px-4 py-3 text-sm font-medium text-slate-600 text-right">{player.stl}</td>
-                <td className="px-4 py-3 text-sm font-medium text-slate-600 text-right">{player.blk}</td>
-                <td className="px-4 py-3 text-sm font-medium text-slate-600 text-right">{player.tov}</td>
-                <td className="px-4 py-3 text-sm font-medium text-slate-600 text-right">{player.pf}</td>
-                <td className="px-4 py-3 text-sm font-medium text-slate-600 text-right">
-                  <div className="font-bold">{player.fga > 0 ? ((player.fgm / player.fga) * 100).toFixed(1) : '0.0'}%</div>
-                  <div className="text-[10px] text-slate-400">{player.fgm}-{player.fga}</div>
-                </td>
-                <td className="px-4 py-3 text-sm font-medium text-slate-600 text-right">
-                  <div className="font-bold">{player.fg3a > 0 ? ((player.fg3m / player.fg3a) * 100).toFixed(1) : '0.0'}%</div>
-                  <div className="text-[10px] text-slate-400">{player.fg3m}-{player.fg3a}</div>
-                </td>
-                <td className="px-4 py-3 text-sm font-medium text-slate-600 text-right">
-                  <div className="font-bold">{player.fta > 0 ? ((player.ftm / player.fta) * 100).toFixed(1) : '0.0'}%</div>
-                  <div className="text-[10px] text-slate-400">{player.ftm}-{player.fta}</div>
-                </td>
-              </tr>
+              <BoxScorePlayerRow
+                key={player.personId}
+                player={player}
+                showDetail={showDetail}
+                quarterStats={quarterStats}
+                maxPeriod={maxPeriod}
+              />
             ))}
-            {/* Team Totals */}
-            <tr className="bg-slate-50 font-bold border-t-2 border-slate-200">
-              <td className="px-4 py-3 text-sm text-slate-900 sticky left-0 bg-slate-50">TOTALS</td>
-              <td className="px-4 py-3 text-sm font-black text-slate-900 text-right">{stats.points}</td>
-              <td className="px-4 py-3 text-sm text-slate-900 text-right">{stats.reb}</td>
-              <td className="px-4 py-3 text-sm text-slate-900 text-right">{stats.ast}</td>
-              <td className="px-4 py-3 text-sm text-slate-900 text-right">{stats.stl}</td>
-              <td className="px-4 py-3 text-sm text-slate-900 text-right">{stats.blk}</td>
-              <td className="px-4 py-3 text-sm text-slate-900 text-right">{stats.tov}</td>
-              <td className="px-4 py-3 text-sm text-slate-900 text-right">{stats.pf}</td>
-              <td className="px-4 py-3 text-sm text-slate-900 text-right">
-                <div>{stats.fga > 0 ? ((stats.fgm / stats.fga) * 100).toFixed(1) : '0.0'}%</div>
-                <div className="text-[10px] text-slate-500 font-normal">{stats.fgm}-{stats.fga}</div>
-              </td>
-              <td className="px-4 py-3 text-sm text-slate-900 text-right">
-                <div>{stats.fg3a > 0 ? ((stats.fg3m / stats.fg3a) * 100).toFixed(1) : '0.0'}%</div>
-                <div className="text-[10px] text-slate-500 font-normal">{stats.fg3m}-{stats.fg3a}</div>
-              </td>
-              <td className="px-4 py-3 text-sm text-slate-900 text-right">
-                <div>{stats.fta > 0 ? ((stats.ftm / stats.fta) * 100).toFixed(1) : '0.0'}%</div>
-                <div className="text-[10px] text-slate-500 font-normal">{stats.ftm}-{stats.fta}</div>
-              </td>
-            </tr>
+            <BoxScoreTotalsRow stats={stats} showDetail={showDetail} quarterStats={quarterStats} maxPeriod={maxPeriod} />
           </tbody>
         </table>
       </div>
     </div>
+  );
+}
+
+function BoxScoreHeader() {
+  const headers = ['Player', 'PTS', 'REB', 'AST', 'STL', 'BLK', 'TO', 'PF', 'FG%', '3P%', 'FT%'];
+  return (
+    <thead>
+      <tr className="bg-slate-50 border-b border-slate-200">
+        {headers.map((h) => (
+          <th
+            key={h}
+            className={`px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider ${
+              h === 'Player' ? 'sticky left-0 bg-slate-50' : 'text-right'
+            }`}
+          >
+            {h}
+          </th>
+        ))}
+      </tr>
+    </thead>
+  );
+}
+
+function BoxScorePlayerRow({
+  player,
+  showDetail,
+  quarterStats,
+  maxPeriod,
+}: {
+  player: PlayerStats;
+  showDetail: boolean;
+  quarterStats: Record<number, TeamStats | null>;
+  maxPeriod: number;
+}) {
+  return (
+    <>
+      <tr className="hover:bg-slate-50 transition-colors">
+        <td className="px-4 py-3 text-sm font-bold text-slate-900 sticky left-0 bg-white">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 relative flex-shrink-0 rounded-full overflow-hidden bg-slate-100 border border-slate-200">
+              <Image
+                src={getPlayerImageUrl(player.personId)}
+                alt={`${player.playerName} headshot`}
+                fill
+                className="object-cover"
+              />
+            </div>
+            <Link
+              href={getPlayerStatsUrl(player.personId)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-blue-600 hover:underline transition-colors"
+            >
+              {player.playerName}
+            </Link>
+          </div>
+        </td>
+        {renderStatCells(player, 'player')}
+      </tr>
+      {showDetail && renderQuarterDetailRows(player.personId, quarterStats, maxPeriod)}
+    </>
+  );
+}
+
+function BoxScoreTotalsRow({
+  stats,
+  showDetail,
+  quarterStats,
+  maxPeriod,
+}: {
+  stats: TeamStats;
+  showDetail: boolean;
+  quarterStats: Record<number, TeamStats | null>;
+  maxPeriod: number;
+}) {
+  return (
+    <>
+      <tr className="bg-slate-50 font-bold border-t-2 border-slate-200">
+        <td className="px-4 py-3 text-sm text-slate-900 sticky left-0 bg-slate-50">TOTALS</td>
+        {renderStatCells(stats, 'total')}
+      </tr>
+      {showDetail && Array.from({ length: maxPeriod }, (_, i) => i + 1).map((period) => {
+        const periodTeam = quarterStats[period];
+        if (!periodTeam) {
+          return null;
+        }
+        return (
+          <tr key={`totals-q${period}`} className="bg-slate-50/50 font-semibold">
+            <td className="px-4 py-1 text-xs text-slate-400 sticky left-0 bg-slate-50/50">
+              <span className="ml-4">{formatPeriodLabel(period)}</span>
+            </td>
+            {renderStatCells(periodTeam, 'total-detail')}
+          </tr>
+        );
+      })}
+    </>
   );
 }
