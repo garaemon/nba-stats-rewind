@@ -80,6 +80,14 @@ export function PlaybackControls({
                 SYNC TO LIVE
               </button>
             )}
+            {!isLive && currentTime < totalDuration - 5 && (
+              <button
+                onClick={() => seek(totalDuration)}
+                className="px-2 py-1 bg-slate-700 text-white rounded text-[10px] hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                SKIP TO END
+              </button>
+            )}
             <span data-testid="total-duration">{Math.floor(totalDuration / 60)}m total</span>
           </div>
         </div>
