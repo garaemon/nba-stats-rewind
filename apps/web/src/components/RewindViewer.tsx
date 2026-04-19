@@ -89,7 +89,7 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
     togglePlay,
     seek,
     setPlaybackSpeed,
-  } = usePlayback({ maxTime: totalDuration });
+  } = usePlayback({ maxTime: totalDuration, isLive });
 
   const [activeTab, setActiveTab] = useState<'pbp' | 'boxscore' | 'comparison'>('boxscore');
   const [selectedPeriod, setSelectedPeriod] = useState<'all' | number>('all');
