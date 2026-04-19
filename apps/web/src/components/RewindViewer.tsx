@@ -347,7 +347,7 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
         </div>
       ) : activeTab === 'boxscore' ? (
         /* Box Score View */
-        <div className="space-y-8">
+        <div className="space-y-8 xl:space-y-0 xl:grid xl:grid-cols-2 xl:gap-6">
           {boxScore ? (
             <>
               <BoxScoreSection
@@ -355,12 +355,14 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
                 stats={boxScore.away}
                 quarterStats={extractQuarterTeamStats(quarterBoxScores, 'away', maxPeriod)}
                 maxPeriod={maxPeriod}
+                teamSide="away"
               />
               <BoxScoreSection
                 title={gameDetails?.homeTeam ? `${gameDetails.homeTeam.teamCity} ${gameDetails.homeTeam.teamName}` : `HOME: ${boxScore.home.teamTriplet}`}
                 stats={boxScore.home}
                 quarterStats={extractQuarterTeamStats(quarterBoxScores, 'home', maxPeriod)}
                 maxPeriod={maxPeriod}
+                teamSide="home"
               />
             </>
           ) : (
@@ -538,9 +540,10 @@ interface BoxScoreSectionProps {
   stats: TeamStats;
   quarterStats: Record<number, TeamStats | null>;
   maxPeriod: number;
+  teamSide: 'away' | 'home';
 }
 
-function BoxScoreSection({ title, stats, quarterStats, maxPeriod }: BoxScoreSectionProps) {
+function BoxScoreSection({ title, stats, quarterStats, maxPeriod, teamSide }: BoxScoreSectionProps) {
   const [showDetail, setShowDetail] = useState(false);
 
   const players = Object.values(stats.playerStats).sort((a, b) => {
@@ -557,7 +560,11 @@ function BoxScoreSection({ title, stats, quarterStats, maxPeriod }: BoxScoreSect
   });
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div
+      data-testid="boxscore-section"
+      data-team-side={teamSide}
+      className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden"
+    >
       <div className="p-6 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-800">{title}</h2>
         <button
