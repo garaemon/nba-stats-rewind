@@ -76,9 +76,11 @@ describe('usePlayback', () => {
     expect(result.current.currentTime).toBeCloseTo(2, 1);
   });
 
+  // Non-live regression guard: reaching maxTime must pause playback when
+  // isLive is false, even with all the live-edge logic around it.
   it('should stop at maxTime', () => {
     const { result } = renderHook(() => usePlayback({ maxTime: 10 }));
-    
+
     act(() => {
       result.current.seek(9.5);
       result.current.setIsPlaying(true);
@@ -89,6 +91,100 @@ describe('usePlayback', () => {
     });
 
     expect(result.current.currentTime).toBe(10);
+    expect(result.current.isPlaying).toBe(false);
+  });
+
+  it('should stay playing at maxTime when isLive is true', () => {
+    const { result } = renderHook(() => usePlayback({ maxTime: 10, isLive: true }));
+
+    act(() => {
+      result.current.seek(9.5);
+      result.current.setIsPlaying(true);
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    expect(result.current.currentTime).toBe(10);
+    expect(result.current.isPlaying).toBe(true);
+  });
+
+  it('should resume advancing when maxTime grows during live follow', () => {
+    const { result, rerender } = renderHook(
+      ({ maxTime, isLive }) => usePlayback({ maxTime, isLive }),
+      { initialProps: { maxTime: 10, isLive: true } },
+    );
+
+    act(() => {
+      result.current.seek(9.5);
+      result.current.setIsPlaying(true);
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    expect(result.current.currentTime).toBe(10);
+
+    rerender({ maxTime: 20, isLive: true });
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    expect(result.current.currentTime).toBeCloseTo(11, 1);
+    expect(result.current.isPlaying).toBe(true);
+  });
+
+  it('should pause when user pauses at the live edge', () => {
+    const { result } = renderHook(() => usePlayback({ maxTime: 10, isLive: true }));
+
+    act(() => {
+      result.current.seek(9.5);
+      result.current.setIsPlaying(true);
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(result.current.currentTime).toBe(10);
+    expect(result.current.isPlaying).toBe(true);
+
+    act(() => {
+      result.current.setIsPlaying(false);
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(500);
+    });
+
+    expect(result.current.isPlaying).toBe(false);
+    expect(result.current.currentTime).toBe(10);
+  });
+
+  it('should pause at maxTime when live ends', () => {
+    const { result, rerender } = renderHook(
+      ({ maxTime, isLive }) => usePlayback({ maxTime, isLive }),
+      { initialProps: { maxTime: 10, isLive: true } },
+    );
+
+    act(() => {
+      result.current.seek(9.5);
+      result.current.setIsPlaying(true);
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(result.current.isPlaying).toBe(true);
+
+    rerender({ maxTime: 10, isLive: false });
+
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+
     expect(result.current.isPlaying).toBe(false);
   });
 });
