@@ -151,7 +151,7 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
   const currentActualTime = startTime + currentTime * 1000;
 
   const playByPlayPanel = (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden ${isWideMode ? 'h-full flex flex-col' : ''}`}>
       <div className="p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
         <h2 className="text-xl font-bold text-slate-800">Play-by-Play</h2>
         <span className="text-xs font-black px-3 py-1 bg-slate-900 text-white rounded-full uppercase">
@@ -159,7 +159,7 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
         </span>
       </div>
 
-      <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+      <div className={`overflow-x-auto overflow-y-auto ${isWideMode ? 'flex-1 min-h-0' : 'max-h-[600px]'}`}>
         <table className="w-full text-left border-collapse">
           <thead className="sticky top-0 z-10">
             <tr className="bg-slate-50 border-b border-slate-200">
@@ -221,11 +221,11 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
   );
 
   const teamComparisonPanel = (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <div className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden ${isWideMode ? 'h-full flex flex-col' : ''}`}>
       <div className="p-6 border-b border-slate-100 bg-slate-50">
         <h2 className="text-xl font-bold text-slate-800">Team Comparison</h2>
       </div>
-      <div className="p-6">
+      <div className={`p-6 ${isWideMode ? 'flex-1 min-h-0 overflow-y-auto' : ''}`}>
         {boxScore ? (
           <div className="space-y-6">
             <div className="grid grid-cols-3 gap-4 text-center items-center font-bold text-sm text-slate-500 uppercase tracking-widest border-b border-slate-100 pb-2">
