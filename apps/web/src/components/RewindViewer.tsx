@@ -426,12 +426,12 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
 
       {isWideMode ? (
         <div className="space-y-6" data-testid="wide-mode-layout">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {boxScoreSections}
-          </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">{playByPlayPanel}</div>
             <div>{teamComparisonPanel}</div>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {boxScoreSections}
           </div>
         </div>
       ) : activeTab === 'pbp' ? (
