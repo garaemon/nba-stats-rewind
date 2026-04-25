@@ -151,7 +151,7 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
   const currentActualTime = startTime + currentTime * 1000;
 
   const playByPlayPanel = (
-    <div className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden ${isWideMode ? 'h-full flex flex-col' : ''}`}>
+    <div className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden ${isWideMode ? 'h-[600px] flex flex-col' : ''}`}>
       <div className="p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
         <h2 className="text-xl font-bold text-slate-800">Play-by-Play</h2>
         <span className="text-xs font-black px-3 py-1 bg-slate-900 text-white rounded-full uppercase">
@@ -221,7 +221,7 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
   );
 
   const teamComparisonPanel = (
-    <div className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden ${isWideMode ? 'h-full flex flex-col' : ''}`}>
+    <div className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden ${isWideMode ? 'h-[600px] flex flex-col' : ''}`}>
       <div className="p-6 border-b border-slate-100 bg-slate-50">
         <h2 className="text-xl font-bold text-slate-800">Team Comparison</h2>
       </div>
