@@ -93,6 +93,7 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
 
   const [activeTab, setActiveTab] = useState<'pbp' | 'boxscore' | 'comparison'>('boxscore');
   const [selectedPeriod, setSelectedPeriod] = useState<'all' | number>('all');
+  const [isWideMode, setIsWideMode] = useState(false);
 
   const visibleActions = useMemo(() => {
     return processedActions.filter((action) => action.wallTimeOffset <= currentTime);
@@ -149,8 +150,118 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
 
   const currentActualTime = startTime + currentTime * 1000;
 
+  const playByPlayPanel = (
+    <div className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden ${isWideMode ? 'h-[600px] flex flex-col' : ''}`}>
+      <div className="p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+        <h2 className="text-xl font-bold text-slate-800">Play-by-Play</h2>
+        <span className="text-xs font-black px-3 py-1 bg-slate-900 text-white rounded-full uppercase">
+          {filteredActions.length} / {processedActions.length} Events
+        </span>
+      </div>
+
+      <div className={`overflow-x-auto overflow-y-auto ${isWideMode ? 'flex-1 min-h-0' : 'max-h-[600px]'}`}>
+        <table className="w-full text-left border-collapse">
+          <thead className="sticky top-0 z-10">
+            <tr className="bg-slate-50 border-b border-slate-200">
+              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Period</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Time</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Score (A-H)</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Event Description</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {filteredActions.length > 0 ? (
+              [...filteredActions].reverse().map((action) => (
+                <tr key={action.actionNumber} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-6 py-4 text-sm font-medium text-slate-600">{action.period}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-slate-600">{formatClock(action.clock)}</td>
+                  <td className="px-6 py-4 text-sm font-bold text-slate-900">
+                    {action.scoreAway} - {action.scoreHome}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-slate-700">
+                    <div className="font-medium text-slate-800">{action.description}</div>
+                    {action.playerName && (
+                      <div className="text-xs text-slate-500 mt-1">{action.playerName} ({action.teamTriplet})</div>
+                    )}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={4} className="px-6 py-24 text-center text-slate-500 font-medium">
+                  {currentTime === 0 ? "Press play to start the game!" : "No events to display yet."}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  const boxScoreSections = boxScore ? (
+    <>
+      <BoxScoreSection
+        title={gameDetails?.awayTeam ? `${gameDetails.awayTeam.teamCity} ${gameDetails.awayTeam.teamName}` : `AWAY: ${boxScore.away.teamTriplet}`}
+        stats={boxScore.away}
+        quarterStats={extractQuarterTeamStats(quarterBoxScores, 'away', maxPeriod)}
+        maxPeriod={maxPeriod}
+      />
+      <BoxScoreSection
+        title={gameDetails?.homeTeam ? `${gameDetails.homeTeam.teamCity} ${gameDetails.homeTeam.teamName}` : `HOME: ${boxScore.home.teamTriplet}`}
+        stats={boxScore.home}
+        quarterStats={extractQuarterTeamStats(quarterBoxScores, 'home', maxPeriod)}
+        maxPeriod={maxPeriod}
+      />
+    </>
+  ) : (
+    <div className="bg-white p-12 rounded-2xl shadow-sm border border-slate-200 text-center text-slate-500 font-medium">
+      No stats available yet.
+    </div>
+  );
+
+  const teamComparisonPanel = (
+    <div className={`bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden ${isWideMode ? 'h-[600px] flex flex-col' : ''}`}>
+      <div className="p-6 border-b border-slate-100 bg-slate-50">
+        <h2 className="text-xl font-bold text-slate-800">Team Comparison</h2>
+      </div>
+      <div className={`p-6 ${isWideMode ? 'flex-1 min-h-0 overflow-y-auto' : ''}`}>
+        {boxScore ? (
+          <div className="space-y-6">
+            <div className="grid grid-cols-3 gap-4 text-center items-center font-bold text-sm text-slate-500 uppercase tracking-widest border-b border-slate-100 pb-2">
+              <span>{gameDetails?.awayTeam?.teamTricode || 'AWAY'}</span>
+              <span className="text-[10px]">Stat</span>
+              <span>{gameDetails?.homeTeam?.teamTricode || 'HOME'}</span>
+            </div>
+
+            <ComparisonRow label="Points" away={boxScore.away.points} home={boxScore.home.points} />
+            <ComparisonRow
+              label="Field Goal %"
+              away={boxScore.away.fga > 0 ? (boxScore.away.fgm / boxScore.away.fga * 100).toFixed(1) : '0.0'}
+              home={boxScore.home.fga > 0 ? (boxScore.home.fgm / boxScore.home.fga * 100).toFixed(1) : '0.0'}
+              suffix="%"
+            />
+            <ComparisonRow
+              label="3-Point %"
+              away={boxScore.away.fg3a > 0 ? (boxScore.away.fg3m / boxScore.away.fg3a * 100).toFixed(1) : '0.0'}
+              home={boxScore.home.fg3a > 0 ? (boxScore.home.fg3m / boxScore.home.fg3a * 100).toFixed(1) : '0.0'}
+              suffix="%"
+            />
+            <ComparisonRow label="Rebounds" away={boxScore.away.reb} home={boxScore.home.reb} />
+            <ComparisonRow label="Assists" away={boxScore.away.ast} home={boxScore.home.ast} />
+            <ComparisonRow label="Steals" away={boxScore.away.stl} home={boxScore.home.stl} />
+            <ComparisonRow label="Blocks" away={boxScore.away.blk} home={boxScore.home.blk} />
+            <ComparisonRow label="Turnovers" away={boxScore.away.tov} home={boxScore.home.tov} invert />
+          </div>
+        ) : (
+          <div className="py-12 text-center text-slate-500 font-medium">No stats available yet.</div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
-    <div className="space-y-6">
+    <div className={`mx-auto space-y-6 ${isWideMode ? 'max-w-[1800px]' : 'max-w-6xl'}`}>
       {/* Live Status Indicator */}
       {isLive && (
         <div className="flex items-center gap-2 px-3 py-1 bg-red-100 text-red-600 rounded-full w-fit text-xs font-black animate-pulse">
@@ -271,143 +382,64 @@ export function RewindViewer({ gameId, actions: initialActions, initialData, isL
           ))}
         </div>
 
-        {/* View Tabs */}
-        <div className="flex gap-2 p-1 bg-slate-200 rounded-xl w-fit">
+        {/* View Tabs + Wide mode toggle */}
+        <div className="flex flex-wrap gap-3 items-center">
+          {!isWideMode && (
+            <div className="flex gap-2 p-1 bg-slate-200 rounded-xl w-fit">
+              <button
+                onClick={() => setActiveTab('boxscore')}
+                className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'boxscore' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Box Score
+              </button>
+              <button
+                onClick={() => setActiveTab('pbp')}
+                className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'pbp' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Play-by-Play
+              </button>
+              <button
+                onClick={() => setActiveTab('comparison')}
+                className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'comparison' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Team Comparison
+              </button>
+            </div>
+          )}
           <button
-            onClick={() => setActiveTab('boxscore')}
-            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'boxscore' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+            onClick={() => setIsWideMode(prev => !prev)}
+            data-testid="wide-mode-toggle"
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all border ${
+              isWideMode
+                ? 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800'
+                : 'bg-white text-slate-700 border-slate-300 hover:border-slate-500 hover:text-slate-900'
             }`}
+            title={isWideMode ? 'Switch to tabbed layout' : 'Show all panels on one page'}
           >
-            Box Score
-          </button>
-          <button
-            onClick={() => setActiveTab('pbp')}
-            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'pbp' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Play-by-Play
-          </button>
-          <button
-            onClick={() => setActiveTab('comparison')}
-            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'comparison' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Team Comparison
+            {isWideMode ? 'Exit Wide Mode' : 'Wide Mode'}
           </button>
         </div>
       </div>
 
-      {activeTab === 'pbp' ? (
-        /* Play-by-Play Table */
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-            <h2 className="text-xl font-bold text-slate-800">Play-by-Play</h2>
-            <span className="text-xs font-black px-3 py-1 bg-slate-900 text-white rounded-full uppercase">
-              {filteredActions.length} / {processedActions.length} Events
-            </span>
+      {isWideMode ? (
+        <div className="space-y-6" data-testid="wide-mode-layout">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">{playByPlayPanel}</div>
+            <div>{teamComparisonPanel}</div>
           </div>
-
-          <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
-            <table className="w-full text-left border-collapse">
-              <thead className="sticky top-0 z-10">
-                <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Period</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Time</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Score (A-H)</th>
-                  <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Event Description</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredActions.length > 0 ? (
-                  [...filteredActions].reverse().map((action) => (
-                    <tr key={action.actionNumber} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 text-sm font-medium text-slate-600">{action.period}</td>
-                      <td className="px-6 py-4 text-sm font-medium text-slate-600">{formatClock(action.clock)}</td>
-                      <td className="px-6 py-4 text-sm font-bold text-slate-900">
-                        {action.scoreAway} - {action.scoreHome}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-slate-700">
-                        <div className="font-medium text-slate-800">{action.description}</div>
-                        {action.playerName && (
-                          <div className="text-xs text-slate-500 mt-1">{action.playerName} ({action.teamTriplet})</div>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={4} className="px-6 py-24 text-center text-slate-500 font-medium">
-                      {currentTime === 0 ? "Press play to start the game!" : "No events to display yet."}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {boxScoreSections}
           </div>
         </div>
+      ) : activeTab === 'pbp' ? (
+        playByPlayPanel
       ) : activeTab === 'boxscore' ? (
-        /* Box Score View */
-        <div className="space-y-8">
-          {boxScore ? (
-            <>
-              <BoxScoreSection
-                title={gameDetails?.awayTeam ? `${gameDetails.awayTeam.teamCity} ${gameDetails.awayTeam.teamName}` : `AWAY: ${boxScore.away.teamTriplet}`}
-                stats={boxScore.away}
-                quarterStats={extractQuarterTeamStats(quarterBoxScores, 'away', maxPeriod)}
-                maxPeriod={maxPeriod}
-              />
-              <BoxScoreSection
-                title={gameDetails?.homeTeam ? `${gameDetails.homeTeam.teamCity} ${gameDetails.homeTeam.teamName}` : `HOME: ${boxScore.home.teamTriplet}`}
-                stats={boxScore.home}
-                quarterStats={extractQuarterTeamStats(quarterBoxScores, 'home', maxPeriod)}
-                maxPeriod={maxPeriod}
-              />
-            </>
-          ) : (
-            <div className="bg-white p-12 rounded-2xl shadow-sm border border-slate-200 text-center text-slate-500 font-medium">
-              No stats available yet.
-            </div>
-          )}
-        </div>
+        <div className="space-y-8">{boxScoreSections}</div>
       ) : (
-        /* Team Comparison View */
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="p-6 border-b border-slate-100 bg-slate-50">
-            <h2 className="text-xl font-bold text-slate-800">Team Comparison</h2>
-          </div>
-          <div className="p-6">
-            {boxScore ? (
-              <div className="space-y-6">
-                <div className="grid grid-cols-3 gap-4 text-center items-center font-bold text-sm text-slate-500 uppercase tracking-widest border-b border-slate-100 pb-2">
-                  <span>{gameDetails?.awayTeam?.teamTricode || 'AWAY'}</span>
-                  <span className="text-[10px]">Stat</span>
-                  <span>{gameDetails?.homeTeam?.teamTricode || 'HOME'}</span>
-                </div>
-
-                <ComparisonRow label="Points" away={boxScore.away.points} home={boxScore.home.points} />
-                <ComparisonRow
-                  label="Field Goal %"
-                  away={boxScore.away.fga > 0 ? (boxScore.away.fgm / boxScore.away.fga * 100).toFixed(1) : '0.0'}
-                  home={boxScore.home.fga > 0 ? (boxScore.home.fgm / boxScore.home.fga * 100).toFixed(1) : '0.0'}
-                  suffix="%"
-                />
-                <ComparisonRow
-                  label="3-Point %"
-                  away={boxScore.away.fg3a > 0 ? (boxScore.away.fg3m / boxScore.away.fg3a * 100).toFixed(1) : '0.0'}
-                  home={boxScore.home.fg3a > 0 ? (boxScore.home.fg3m / boxScore.home.fg3a * 100).toFixed(1) : '0.0'}
-                  suffix="%"
-                />
-                <ComparisonRow label="Rebounds" away={boxScore.away.reb} home={boxScore.home.reb} />
-                <ComparisonRow label="Assists" away={boxScore.away.ast} home={boxScore.home.ast} />
-                <ComparisonRow label="Steals" away={boxScore.away.stl} home={boxScore.home.stl} />
-                <ComparisonRow label="Blocks" away={boxScore.away.blk} home={boxScore.home.blk} />
-                <ComparisonRow label="Turnovers" away={boxScore.away.tov} home={boxScore.home.tov} invert />
-              </div>
-            ) : (
-              <div className="py-12 text-center text-slate-500 font-medium">No stats available yet.</div>
-            )}
-          </div>
-        </div>
+        teamComparisonPanel
       )}
     </div>
   );
