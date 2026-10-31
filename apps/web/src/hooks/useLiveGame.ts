@@ -22,10 +22,12 @@ export function useLiveGame({
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Sync isLive with enabled prop
-  useEffect(() => {
+  // Sync isLive with enabled prop (adjust state during render instead of in an effect)
+  const [prevEnabled, setPrevEnabled] = useState(enabled);
+  if (enabled !== prevEnabled) {
+    setPrevEnabled(enabled);
     setIsLive(enabled);
-  }, [enabled]);
+  }
 
   const fetchData = async () => {
     try {
