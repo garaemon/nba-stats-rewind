@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
+// Abort each upstream check so a blocked host reports an error instead of hanging the route
+const FETCH_TIMEOUT_MS = 8000;
+
 export async function GET() {
   const results = {
     cdn: { status: 0, statusText: '', headers: {}, error: null as any, dataPreview: null as any, timing: 0 },
@@ -24,7 +27,8 @@ export async function GET() {
     const cdnUrl = 'https://cdn.nba.com/static/json/liveData/scoreboard/todaysScoreboard_00.json';
     const cdnRes = await fetch(cdnUrl, {
       headers: { ...headers },
-      cache: 'no-store'
+      cache: 'no-store',
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     results.cdn.status = cdnRes.status;
     results.cdn.statusText = cdnRes.statusText;
@@ -61,7 +65,8 @@ export async function GET() {
         'x-nba-stats-origin': 'stats',
         'x-nba-stats-token': 'true',
       },
-      cache: 'no-store'
+      cache: 'no-store',
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     results.stats.status = statsRes.status;
     results.stats.statusText = statsRes.statusText;
@@ -89,7 +94,8 @@ export async function GET() {
 
     const response = await fetch(url, {
       headers: { ...headers },
-      cache: 'no-store'
+      cache: 'no-store',
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
 
     results.scoreboard_fallback.status = response.status;
@@ -113,7 +119,7 @@ export async function GET() {
 
   // Check IP
   try {
-    const ipRes = await fetch('https://httpbin.org/ip');
+    const ipRes = await fetch('https://httpbin.org/ip', { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
     const ipData = await ipRes.json();
     results.ip = ipData;
   } catch (e: any) {
