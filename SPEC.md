@@ -63,7 +63,7 @@ A web application that allows users to "rewind" and "replay" NBA game statistics
 - **Frontend/Backend:** [Next.js](https://nextjs.org/) (App Router)
 - **Language:** [TypeScript](https://www.typescriptlang.org/)
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/)
-- **Deployment:** [Vercel](https://vercel.com/)
+- **Deployment:** [Cloudflare Workers](https://workers.cloudflare.com/) (via [OpenNext](https://opennext.js.org/cloudflare))
 - **Data Source:** NBA Stats API (accessed via `stats.nba.com` or community-maintained wrappers)
 - **State Management:** React Context or [Zustand](https://github.com/pmndrs/zustand) for playback state (current time, playback speed).
 
